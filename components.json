@@ -1,0 +1,54 @@
+{
+    "Description": "Application Demo for 3-DOF Robotic arm  control",
+    "Type": "Components",
+    "git": "https://github.com/ML-ES-Platform/app_builder",
+    "Path": "TOOLS/app_builder/",
+    "Components": {
+        "ADC_PIN": {
+            "Name": "null"
+        },
+        "ADC": {
+            "Name": "mcal_adc",
+            "git": "https://github.com/ML-ES-Platform/mcal_adc.git",
+            "Path": "MCAL/mcal_adc/"
+        },
+        "POT": {
+            "Name": "dd_potentiometer",
+            "git": "https://github.com/ML-ES-Platform/dd_potentiometer",
+            "Path": "ESW/dd_pot/"
+        },
+        "ANGSNS": {
+            "Name": "vd_angle_sens",
+            "git": "https://github.com/ML-ES-Platform/vd_angle_sens.git",
+            "Path": "ESW/vd_angle_sens/"
+        },
+        "PCA9685_PIN": {
+            "Name": "null"
+        },
+        "PCA9685": {
+            "Name": "dd_pca9685",
+            "git": "https://github.com/ML-ES-Platform/dd_pca9685.git",
+            "Path": "ESW/dd_pca9685/"
+        },
+        "DDSERVO": {
+            "Name": "dd_servo",
+            "git": "https://github.com/ML-ES-Platform/dd_servo.git",
+            "Path": "ESW/dd_servo/"
+        },
+        "VDSERVO": {
+            "Name": "vd_servo",
+            "git": "https://github.com/ML-ES-Platform/vd_servo.git",
+            "Path": "ESW/vd_servo/"
+        },
+        "TTOS": {
+            "Name": "os_time_trig",
+            "git": "https://github.com/ML-ES-Platform/os_time_trig.git",
+            "Path": "BSW/os_time_trig/"
+        },
+        "ARM_6DOF": {
+            "Name": "arm_6dof",
+            "git": "https://github.com/ML-ES-Platform/arm_6dof.git",
+            "Path": "ASW/arm_6dof/"
+        }
+    }
+}
