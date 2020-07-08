@@ -1,11 +1,12 @@
+"""Example  docstrings."""
 # module: configuration Generator
 
 from graphviz import Digraph
 import json
 
 def CfgHeadGen(jsonFile, headerFile):
-        
-
+    """Generate component configuration Header."""
+    #
     with open(jsonFile, "r") as read_file:
         JSON_object = json.load(read_file)
         applicationName = JSON_object["Name"]
@@ -41,6 +42,7 @@ def CfgHeadGen(jsonFile, headerFile):
 
                 # Components Groups
                 if "Groups" in linkComps[comp]:
+                   
                     linkGroup = linkComps[comp]["Groups"]
                     for grp in linkGroup:
                         groupName = str(linkGroup[grp])
@@ -53,15 +55,15 @@ def CfgHeadGen(jsonFile, headerFile):
                         if "Channels" in linkGroup[grp]:
                             f_head.write("enum "+ groupName.upper()+"_IdType {")
                             linkChannels = linkGroup[grp]["Channels"]
-                            for el in linkChannels:
-                                f_head.write(el + ", ")
+                            for cnl in linkChannels:
+                                f_head.write(cnl + ", ")
                             f_head.write(groupName.upper() +"_CHANNEL_NR_OF};\n")
                         
                         # Defines
                         if "Defines" in linkGroup[grp]:
                             linkDefines = linkGroup[grp]["Defines"]
-                            for el in linkDefines:
-                                f_head.write("#define "+el + " " + str(linkDefines[el])+ "\n")
+                            for cnl in linkDefines:
+                                f_head.write("#define "+cnl + " " + str(linkDefines[cnl])+ "\n")
                         
                 # Components Paths in project
                 if "Path" in linkComps[comp]:
@@ -78,7 +80,8 @@ def CfgHeadGen(jsonFile, headerFile):
 
 
 def CfgSrcGen(jsonFile, srcFile):
-        
+    """Generate component configuration Source file."""
+    #  
     with open(jsonFile, "r") as read_file:
         JSON_object = json.load(read_file)
         applicationName = JSON_object["Name"]
@@ -174,6 +177,8 @@ Std_ReturnType " + applicationName + "_config(void)\n\
 
 
 def DotGen(jsonFile, dotFile):
+    """Generate project Linkage dot."""
+    #
     dot = Digraph(comment='arm 6-dof demo')
 
     with open(jsonFile, "r") as read_file:
