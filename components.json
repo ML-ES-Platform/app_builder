@@ -7,7 +7,7 @@
         "ADC_PIN": {
             "Name": "null"
         },
-        "ADC": {
+        "mcal_adc": {
             "Name": "mcal_adc",
             "git": "https://github.com/ML-ES-Platform/mcal_adc.git",
             "Path": "MCAL/mcal_adc/"
