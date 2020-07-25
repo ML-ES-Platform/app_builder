@@ -346,6 +346,7 @@ class AppBuilderProject():
         projectFilePath = self.prjDir + "/" + self.prjFileName
         # with open(componetFilePath, "r") as read_file:
         #     JSON_CompList = json.load(read_file)
+        JSON_CompList = self.JSON_platform
         if "Components" not in self.JSON_project:
             self.JSON_project["Components"] = {}
         JSON_Comps = self.JSON_project["Components"]

@@ -511,9 +511,12 @@ class PlatformPanel(wx.Panel):
         the_list = curPrj.GetPlatformCompList()
         for comp in the_list:
             self.comp_list.InsertItem(0, comp)
+
+            # Mark Installed component
             res = curPrj.GetPrjCompName(comp)
             if res != "null":
                 self.comp_list.SetItemTextColour(0,"blue")
+            # Mark Unavailable component
             curPrj.LoadCompConfigFile(comp)
             res = curPrj.GetPlatformCompName(comp)
             if res == "null":
@@ -537,16 +540,16 @@ class ProjectBuilderPanel(wx.Panel):
         editSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # Component Name
-        self.grp_name_lbl = wx.StaticText(self, wx.ID_ANY, 'Group Name : ')
-        editSizer.Add(self.grp_name_lbl, 0, wx.ALL| wx.EXPAND )
-        self.grp_name_txt = wx.TextCtrl(self, wx.ID_ANY |  wx.EXPAND, '')
-        editSizer.Add(self.grp_name_txt, 0, wx.ALL| wx.EXPAND )
-        self.grp_add_btn = wx.Button(self, -1, 'Add Group')
-        editSizer.Add(self.grp_add_btn, 0, 5 )
-        self.grp_add_btn.Bind(wx.EVT_BUTTON, self.OnAddGroupBtnClicked)
+        # self.grp_name_lbl = wx.StaticText(self, wx.ID_ANY, 'Group Name : ')
+        # editSizer.Add(self.grp_name_lbl, 0, wx.ALL| wx.EXPAND )
+        # self.grp_name_txt = wx.TextCtrl(self, wx.ID_ANY |  wx.EXPAND, '')
+        # editSizer.Add(self.grp_name_txt, 0, wx.ALL| wx.EXPAND )
+        # self.grp_add_btn = wx.Button(self, -1, 'Add Group')
+        # editSizer.Add(self.grp_add_btn, 0, 5 )
+        # self.grp_add_btn.Bind(wx.EVT_BUTTON, self.OnAddGroupBtnClicked)
 
-        #build general configuration Sizer: Name, Git, Path, Group
-        topSizer.Add(editSizer, 0, wx.ALL | wx.EXPAND, 5)
+        # #build general configuration Sizer: Name, Git, Path, Group
+        # topSizer.Add(editSizer, 0, wx.ALL | wx.EXPAND, 5)
 
  
         # build comp Name Sizer ==================================
@@ -560,9 +563,11 @@ class ProjectBuilderPanel(wx.Panel):
         # Source Channel List
         self.cnl_tree_src = wx.dataview.TreeListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.BORDER_SUNKEN|wx.EXPAND)
         linkSrcSizer.Add(self.cnl_tree_src, 1, wx.ALL | wx.EXPAND )
-        self.cnl_tree_src.AppendColumn('Group ')
-        self.cnl_tree_src.AppendColumn('Group Channels')
-        self.cnl_tree_src.AppendColumn('Linked Channel')
+        self.cnl_tree_src.AppendColumn('Channel ', width=100)
+        self.cnl_tree_src.AppendColumn('Channel Link')
+        self.cnl_tree_src.AppendColumn('Push')
+        self.cnl_tree_src.AppendColumn('Pull')
+        self.cnl_tree_src.AppendColumn('Dependency')
 
         topSizer.Add(linkSrcSizer, 0, wx.ALL | wx.EXPAND, 5)
 
@@ -571,13 +576,11 @@ class ProjectBuilderPanel(wx.Panel):
         dependencySizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # dependency component List
-        self.comp_list_dep = wx.ListCtrl(self, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-        dependencySizer.Add(self.comp_list_dep, 0, wx.ALL | wx.EXPAND )
-        self.comp_list_dep.InsertColumn(0, " Dependency Component", width=150)
+
         self.comp_tree_dep = wx.TreeCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 150,150 ))
-        dependencySizer.Add(self.comp_tree_dep, 0, wx.ALL | wx.EXPAND )
+        dependencySizer.Add(self.comp_tree_dep, 1, wx.ALL | wx.EXPAND , 5)
         self.dep_add_btn = wx.Button(self, -1, 'Add Dependency')
-        dependencySizer.Add(self.dep_add_btn, 0,  )
+        dependencySizer.Add(self.dep_add_btn, 0, wx.ALL , 5 )
         self.dep_add_btn.Bind(wx.EVT_BUTTON, self.OnAddDepBtnClicked) 
 
         topSizer.Add(dependencySizer, 0, wx.ALL | wx.EXPAND, 5)
@@ -591,17 +594,15 @@ class ProjectBuilderPanel(wx.Panel):
         linkDstSizer.Add(self.comp_list_dst, 0, wx.ALL | wx.EXPAND , 5 )
         self.comp_list_dst.InsertColumn(0, " Destination Component", width=150)
         self.comp_list_dst.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnCompDstSelected)
-
-        # link destination Group List
-        self.grp_list_dst = wx.ListCtrl(self, style=wx.LC_REPORT | wx.BORDER_SUNKEN, size=(150, -1))
-        linkDstSizer.Add(self.grp_list_dst, 0, wx.ALL | wx.EXPAND , 5 )
-        self.grp_list_dst.InsertColumn(0, 'Destination Group', width=150)
-     
+ 
         # Destination Channel List
-        self.cnl_list_dst = wx.ListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-        linkDstSizer.Add(self.cnl_list_dst, 1, wx.ALL | wx.EXPAND, 5 )
-        self.cnl_list_dst.InsertColumn(0, 'Group Channels', width=100)
-        self.cnl_list_dst.InsertColumn(1, 'Linked Channel')
+        self.cnl_tree_dst = wx.dataview.TreeListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.BORDER_SUNKEN|wx.EXPAND)
+        linkDstSizer.Add(self.cnl_tree_dst, 1, wx.ALL | wx.EXPAND, 5 )
+        self.cnl_tree_dst.AppendColumn('Channel', width=100)
+        self.cnl_tree_dst.AppendColumn('Channel Link')
+        self.cnl_tree_dst.AppendColumn('Push')
+        self.cnl_tree_dst.AppendColumn('Pull')
+        self.cnl_tree_dst.AppendColumn('Dependency')
 
         # build comp Name Sizer
         topSizer.Add(linkDstSizer, 0, wx.ALL | wx.EXPAND, 5)
@@ -622,29 +623,30 @@ class ProjectBuilderPanel(wx.Panel):
         self.ShowSrcGroups(comp)
         self.ShowDstGroups(comp)
 
-    def OnAddGroupBtnClicked(self, event): 
-        self.ShowGroupHints()
+    # def OnAddGroupBtnClicked(self, event): 
+    #     self.ShowGroupHints()
 
-        btn = event.GetEventObject().GetLabel() 
-        comp = curPrj.activeComponent
-        grp = self.grp_name_txt.GetValue()
-        x = curPrj.GetGroupDict(comp, grp)
-        if (x != "null"):
-            print (">< EXISTS ><")
-        else:
-            curPrj.AddGroup(comp,grp)
-        self.ShowSrcGroups(comp)
+        # btn = event.GetEventObject().GetLabel() 
+        # comp = curPrj.activeComponent
+        # grp = self.grp_name_txt.GetValue()
+        # x = curPrj.GetGroupDict(comp, grp)
+        # if (x != "null"):
+        #     print (">< EXISTS ><")
+        # else:
+        #     curPrj.AddGroup(comp,grp)
+        # self.ShowSrcGroups(comp)
 
     def OnAddDepBtnClicked(self, event): 
-        btn = event.GetEventObject().GetLabel() 
-        comp = curPrj.activeComponent
-        grp = self.grp_name_txt.GetValue()
-        x = curPrj.GetGroupDict(comp, grp)
-        if (x != "null"):
-            print (">< EXISTS ><")
-        else:
-            curPrj.AddGroup(comp,grp)
-        self.ShowSrcGroups(comp)
+        # btn = event.GetEventObject().GetLabel() 
+        # comp = curPrj.activeComponent
+        # grp = self.grp_name_txt.GetValue()
+        # x = curPrj.GetGroupDict(comp, grp)
+        # if (x != "null"):
+        #     print (">< EXISTS ><")
+        # else:
+        #     curPrj.AddGroup(comp,grp)
+        # self.ShowSrcGroups(comp)
+        return
  
     def OnPaint(self, evt):
         """Update window."""
@@ -664,6 +666,18 @@ class ProjectBuilderPanel(wx.Panel):
         for comp in comp_list:
             self.comp_list_src.InsertItem(0, comp)
             self.comp_list_dst.InsertItem(0, comp)
+            # Mark installed components
+            res = curPrj.GetPrjCompName(comp)
+            if res != "null":
+                self.comp_list_src.SetItemTextColour(0,"blue")
+                self.comp_list_dst.SetItemTextColour(0,"blue")
+            # Mark unavailable components
+            curPrj.LoadCompConfigFile(comp)
+            res = curPrj.GetPlatformCompName(comp)
+            if res == "null":
+                self.comp_list_src.SetItemTextColour(0,"red")
+                self.comp_list_dst.SetItemTextColour(0,"red")
+
 
     def ShowSrcGroups(self, comp):
         """Show component on Panel."""
@@ -679,9 +693,23 @@ class ProjectBuilderPanel(wx.Panel):
             cnl_list = curPrj.GetPrjGrpCnlList(comp,grp)
             for cnl in cnl_list:
                 cnl_item = self.cnl_tree_src.AppendItem(child, cnl)
+                # Show Link
                 cnl_link = curPrj.GetPrjGrpCnlLink(comp,grp,cnl)
-
                 self.cnl_tree_src.SetItemText(cnl_item, 1,cnl_link)
+                # Show Dependency
+                res = curPrj.GetPrjCompGrpDep(comp,grp)
+                self.cnl_tree_src.SetItemText(cnl_item, 2,res)
+                # Show Push
+                res = curPrj.GetPrjCompGrpPush(comp,grp)
+                self.cnl_tree_src.SetItemText(cnl_item, 3,res)
+                 # Show Link
+                res = curPrj.GetPrjCompGrpPull(comp,grp)
+                self.cnl_tree_src.SetItemText(cnl_item, 4,res)
+
+
+
+
+
             self.cnl_tree_src.Expand(child)
 
     def ShowDstGroups(self, comp):
@@ -689,24 +717,47 @@ class ProjectBuilderPanel(wx.Panel):
         # global curPrj
         grp_list = curPrj.GetPrjGrpList(comp)
 
-        self.grp_list_dst.DeleteAllItems()
+        self.cnl_tree_dst.DeleteAllItems()
+        self.cnl_tree_dst.DeleteAllItems()
+        root = self.cnl_tree_dst.GetRootItem()
         # Groups Iterate
         for grp in grp_list:
-            self.grp_list_dst.InsertItem(0, grp)
+            child = self.cnl_tree_dst.AppendItem(root, grp)
+
+            cnl_list = curPrj.GetPrjGrpCnlList(comp,grp)
+            for cnl in cnl_list:
+                cnl_item = self.cnl_tree_dst.AppendItem(child, cnl)
+                # Show Link
+                cnl_link = curPrj.GetPrjGrpCnlLink(comp,grp,cnl)
+                self.cnl_tree_dst.SetItemText(cnl_item, 1,cnl_link)
+                # Show Dependency
+                res = curPrj.GetPrjCompGrpDep(comp,grp)
+                self.cnl_tree_dst.SetItemText(cnl_item, 2,res)
+                # Show Push
+                res = curPrj.GetPrjCompGrpPush(comp,grp)
+                self.cnl_tree_dst.SetItemText(cnl_item, 3,res)
+                 # Show Link
+                res = curPrj.GetPrjCompGrpPull(comp,grp)
+                self.cnl_tree_dst.SetItemText(cnl_item, 4,res)
 
     def OnCompSrcSelected(self, event):
         """Call Action when component in list is selected."""
         comp = event.GetText()
-        self.grp_name_txt.SetValue(comp + "_grp")
+
         self.ShowSrcGroups(comp)
 
-        curPrj.LoadCompConfigFile(comp)
-        dep_list = curPrj.GetDefCompDepList(comp)
+        self.BuildDependencyTree(comp)
 
-        self.comp_list_dep.DeleteAllItems()
-        # Groups Iterate
-        for comp_it in dep_list:
-            self.comp_list_dep.InsertItem(0, comp_it)
+        # self.grp_name_txt.SetValue(comp + "_grp")
+        # curPrj.LoadCompConfigFile(comp)
+        # dep_list = curPrj.GetDefCompDepList(comp)
+        # self.comp_list_dep.DeleteAllItems()
+        # # Groups Iterate
+        # for comp_it in dep_list:
+        #     self.comp_list_dep.InsertItem(0, comp_it)
+
+
+    def BuildDependencyTree(self,comp):
         
         self.comp_tree_dep.DeleteAllItems()
 
@@ -719,10 +770,22 @@ class ProjectBuilderPanel(wx.Panel):
         curPrj.LoadCompConfigFile(comp)
         dep_list = curPrj.GetDefCompDepList(comp)
         for comp_it in dep_list:
-            child = self.comp_tree_dep.AppendItem(parent, comp_it)
-            self.comp_tree_dep.SetItemTextColour(child,"red")
-            self.comp_tree_dep.SetItemBackgroundColour(child,"green")
             if str(comp_it) != str(comp) :
+                child = self.comp_tree_dep.AppendItem(parent, comp_it)
+
+                # Mark installed components
+                res = curPrj.GetPrjCompName(comp_it)
+                if res != "null":
+                    self.comp_tree_dep.SetItemTextColour(child,"blue")
+                # Mark unavailable components
+                curPrj.LoadCompConfigFile(comp_it)
+                res = curPrj.GetPlatformCompName(comp_it)
+                if res == "null":
+                    self.comp_tree_dep.SetItemTextColour(child,"red")
+
+
+                # self.comp_tree_dep.SetItemTextColour(child,"red")
+                # self.comp_tree_dep.SetItemBackgroundColour(child,"green")
                 self.BuildTreeDependency(child, comp_it)   
 
     def OnCompDstSelected(self, event):
@@ -749,6 +812,7 @@ class CompListPopupMenu(wx.Menu):
         curPrj.AddProjectCompFromPlatform(self.comp)
         # self.parent.parent.parent.panel.GetComponents()
         window.prj_panel.GetComponents()
+        window.comp_panel.UpdateComponentList()
 
 class CompPopupMenu(wx.Menu):
     """Component Mangement PopUp menu."""
