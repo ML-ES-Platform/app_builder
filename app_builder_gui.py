@@ -1267,15 +1267,27 @@ class MainWindow(wx.Frame):
 
     def createMenu(self):
         """Create the menu of the Main Window."""
-        menu = wx.Menu()
-        menuNew = menu.Append(wx.ID_NEW, "&New", "New Configuration")
-        menuOpen = menu.Append(wx.ID_OPEN, "&Open", "Open Configuration")
-        menuSave = menu.Append(wx.ID_SAVE, "&Save As", "Save Configuration")
-        menuExit = menu.Append(wx.ID_EXIT, "E&xit", "Quit application")
-
+        # Create Menu Bar
         menuBar = wx.MenuBar()
-        menuBar.Append(menu, "&File")
+        # File Menu
+        file_menu = wx.Menu()
+        menuNew = file_menu.Append(wx.ID_NEW, "&New", "New Configuration")
+        menuOpen = file_menu.Append(wx.ID_OPEN, "&Open", "Open Configuration")
+        self.filehistory = wx.FileHistory(8)
+        self.config = wx.Config("Your-Programs-Name", style=wx.CONFIG_USE_LOCAL_FILE)
+        self.filehistory.Load(self.config)
+        menu_recent = wx.Menu()
+        self.filehistory.UseMenu(menu_recent)
+        self.filehistory.AddFilesToMenu()
+        file_menu.AppendMenu(wx.ID_ANY, "&Open Recent Files", menu_recent)
+        menuSave = file_menu.Append(wx.ID_SAVE, "&Save", "Save Configuration")
+        menuSaveAs = file_menu.Append(wx.ID_SAVE, "&Save As", "Save Configuration with a new name")
+        menuExit = file_menu.Append(wx.ID_EXIT, "E&xit", "Quit application")
 
+        # Append File Menu to Menu Bar
+        menuBar.Append(file_menu, "&File")
+
+        # Generate Menu
         genMenu = wx.Menu()
         menuCfg = genMenu.Append(
             wx.ID_ANY, "Generate &Config ",
@@ -1300,7 +1312,9 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnNew, menuNew)
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
-        self.Bind(wx.EVT_MENU, self.OnSaveAs, menuSave)
+        self.Bind(wx.EVT_MENU_RANGE, self.on_file_history, id=wx.ID_FILE1, id2=wx.ID_FILE9)
+        self.Bind(wx.EVT_MENU, self.doSaveData, menuSave)
+        self.Bind(wx.EVT_MENU, self.OnSaveAs, menuSaveAs)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
 
         self.Bind(wx.EVT_MENU, self.OnDotGen, menuDot)
@@ -1339,11 +1353,16 @@ class MainWindow(wx.Frame):
 
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return  # the user changed their mind
+
             # save the current contents in the file
             pathname = fileDialog.GetPath()
             curPrj.NewProjectFile(pathname)
             self.prj_panel.UpdateProjectComptList()
             self.prj_panel.showCompConfig("")
+
+            self.filehistory.AddFileToHistory(pathname)
+            self.filehistory.Save(self.config)
+            self.config.Flush()
 
     def OnOpen(self, event):
         """Open an existing Configuration json."""
@@ -1362,12 +1381,39 @@ class MainWindow(wx.Frame):
                            | wx.FD_FILE_MUST_EXIST) as fileDialog:
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return  # the user changed their mind
+
             # Proceed loading the file chosen by the user
             pathname = fileDialog.GetPath()
             try:
                 curPrj.LoadProjectFile(pathname)
             except IOError:
                 wx.LogError("Cannot open file '%s'." % pathname)
+
+        #update Application windows
+        self.prj_panel.UpdateProjectComptList()
+        curPrj.LoadPlatformFile()
+        self.comp_panel.UpdatePlatformComptList()
+
+        # Update window title with file name
+        title = app_title + " - " + curPrj.prjFileName
+        self.SetTitle(title)
+
+        #register file in file history
+        self.filehistory.AddFileToHistory(pathname)
+        self.filehistory.Save(self.config)
+        self.config.Flush()
+
+    def on_file_history(self, event):
+        fileNum = event.GetId() - wx.ID_FILE1
+        pathname = self.filehistory.GetHistoryFile(fileNum)
+        self.filehistory.AddFileToHistory(pathname)  # move up the list
+        # do whatever you want with the file path...
+        # Proceed loading the file chosen by the user
+
+        try:
+            curPrj.LoadProjectFile(pathname)
+        except IOError:
+            wx.LogError("Cannot open file '%s'." % pathname)
 
         self.prj_panel.UpdateProjectComptList()
         curPrj.LoadPlatformFile()
@@ -1397,6 +1443,9 @@ class MainWindow(wx.Frame):
             pathname = fileDialog.GetPath()
             curPrj.SetProjectFilePath()
             self.doSaveData()
+            self.filehistory.AddFileToHistory(pathname)
+            self.filehistory.Save(self.config)
+            self.config.Flush()
 
     def OnExit(self, event):
         """Handle Exit Action."""
