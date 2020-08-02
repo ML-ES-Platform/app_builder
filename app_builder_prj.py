@@ -5,54 +5,39 @@ import git
 
 class AppBuilderProject():
     def __init__(self, x):
-        self.platformUrl = ""
-        self.platformDir = ""
-        self.platformFileName = ""
-        self.prjDir = ""
-        self.prjFileName = ""
-        self.headerFile = ""
-        self.srcFile = ""
-        self.dotFile = ""
-        self.compDefaultPath = "null"
-        x = '{ }'
-        self.JSON_project = json.loads(x)
-        self.JSON_platform = json.loads(x)
-        self.JSON_config = json.loads(x)
-        self.activeComponent = ""
-        self.activeGroup = ""
-        self.activeChannel = ""
+        self.platformUrl = "none"
+        self.platformDir = "none"
+        self.platformFileName = "none"
+        self.headerFile = "none"
+        self.srcFile = "none"
+        self.dotFile = "none"
+        self.compDefaultPath = "none"
+        self.JSON_project = {}
+        self.JSON_platform = {}
+        self.JSON_config = {}
+        self.activeComponent = "none"
+        self.activeGroup = "none"
+        self.activeChannel = "none"
         self.prjContentNotSaved = False
-
-    def SetProjectFilePath(self, pathname):
-        """Set project File Path."""
-        self.prjDir = os.path.dirname(pathname).replace("\\", "/")
-        self.prjFileName = os.path.basename(pathname).replace("\\", "/")
-
-    def GetProjectFilePath(self):
-        """Return project File Path."""
-        filePath = self.prjDir + "/" + self.prjFileName
-        return filePath
-
-    def GetProjectDir(self):
-        return self.prjDir
+        self.SetProjectFileName("none")
+        self.SetProjectHomeDir("none")
 
     def NewProjectFile(self, pathname):
 
+        self.JSON_project = {}
         self.SetProjectFilePath(pathname)
-        x = '{ "FileName" : "' + self.prjFileName + '"}'
-        self.JSON_project = json.loads(x)
         self.SaveProjectFile()
 
     def LoadProjectFile(self, pathname):
         """Open the Json Project configuration File."""
         with open(pathname, 'r') as file:
-            self.SetProjectFilePath(pathname)
             self.JSON_project = json.load(file)
+            self.SetProjectFilePath(pathname)
             file.close()
+        filePath = self.GetProjectFilePath()
 
     def SaveProjectFile(self):
         """Save the Json Project configuration File."""
-        # filePath = self.prjDir + "/" + self.prjFileName
         filePath = self.GetProjectFilePath()
         with open(filePath, 'w') as file:
             json.dump(self.JSON_project, file, indent=4)
@@ -60,7 +45,7 @@ class AppBuilderProject():
 
     def LoadCompConfigFile(self, comp):
         result = False
-        prjDir = self.GetProjectDir()
+        prjDir = self.GetProjectHomeDir()
         compDir = self.GetPlatformCompPath(comp)
         configFileName = (prjDir + "/" + compDir + "/" +
                           "config.json").replace("//", "/")
@@ -76,9 +61,10 @@ class AppBuilderProject():
 
     def LoadPlatformFile(self):
         """Extract component list and the references in a panel."""
-        with open(
-                self.prjDir + "/" + self.platformDir + "/" +
-                self.platformFileName, "r") as read_file:
+        platformFilePath = self.GetProjectHomeDir(
+        ) + "/" + self.platformDir + "/" + self.platformFileName
+
+        with open(platformFilePath, "r") as read_file:
             self.JSON_platform = json.load(read_file)
 
     def UpdatePlatform(self, platformUrl, platformDir):
@@ -127,13 +113,13 @@ class AppBuilderProject():
         return result
 
     def GetDefCompName(self, comp):
-        return GetDefCompByKey(self, comp, "Name")
+        return comp
 
     def GetDefCompGit(self, comp):
         return GetDefCompByKey(self, comp, "git")
 
     def GetDefCompPath(self, comp):
-        return GetDefCompByKey(self, comp, "git")
+        return GetDefCompByKey(self, comp, "Path")
 
     def GetDefCompGrpNameList(self, comp):
         result = []
@@ -144,14 +130,16 @@ class AppBuilderProject():
                     dictGrp = dictComps[comp]["Groups"]
                     for grp in dictGrp:
                         name = str(grp)
-                        if "Name" in dictGrp[grp]:
-                            name = dictGrp[grp]["Name"]
-                            # if dep not in result
                         result.append(name)
         return result
 
     def GetDefCompGrpList(self, comp):
         key_list = ["Components", comp, "Groups"]
+        result = self.GetValueListByKey(self.JSON_config, key_list)
+        return result
+
+    def GetDefCompGrpCnlList(self, comp, grp):
+        key_list = ["Components", comp, "Groups", grp, "Channels", "Names"]
         result = self.GetValueListByKey(self.JSON_config, key_list)
         return result
 
@@ -164,7 +152,7 @@ class AppBuilderProject():
         return result
 
     def GetDefCompDepList(self, comp):
-        return self.GetDefCompAllListByKey(comp, "Dependencies")
+        return self.GetDefCompAllListByKey(comp, "Dependency")
 
     def GetDefCompDefineList(self, comp):
         return self.GetDefCompAllListByKey(comp, "Defines")
@@ -186,16 +174,45 @@ class AppBuilderProject():
         return result
 
     def GetDefCompGrpName(self, comp, grp):
-        return self.GetDefCompGrpByKey(comp, grp, "Name")
+        key_list = ["Components", comp, "Groups", grp]
+        result = self.GetValueByKeyList(self.JSON_config, key_list)
+        return result
 
     def GetDefCompGrpMultiplicity(self, comp, grp):
         return self.GetDefCompGrpByKey(comp, grp, "Multiplicity")
 
-    def GetDefCompGrpNamespace(self, comp, grp):
+    def MultiplicityDecode(self, multiplicity, max_mult = 5):
+        """Decode Multiplicity string."""
+        counts = [0, 0]
+        str_counts = multiplicity.split("-")
+
+        mapper = lambda x: -1 if x == '*' else int(x)
+
+        if len(str_counts) > 0:
+            counts[0] = mapper(str_counts[0])
+
+        if len(str_counts) == 1:
+            counts[1] = mapper(str_counts[0])
+
+        if len(str_counts) > 1:
+            counts[1] = mapper(str_counts[1])
+
+        if counts[0] == -1:
+            counts = [0, max_mult]
+        elif counts[1] == -1:
+            counts[1] = max_mult
+
+
+        return counts
+
+    def GetDefCompGrpNameSpace(self, comp, grp):
         return self.GetDefCompGrpByKey(comp, grp, "NameSpace")
 
+    def GetDefCompGrpNames(self, comp, grp):
+        return self.GetDefCompGrpByKey(comp, grp, "Names")
+
     def GetDefCompGrpDepList(self, comp, grp):
-        return self.GetDefCompGrpListByKey(comp, grp, "Dependencies")
+        return self.GetDefCompGrpListByKey(comp, grp, "Dependency" )
 
     def GetDefCompGrpDefList(self, comp, grp):
         return self.GetDefCompGrpListByKey(comp, grp, "Defines")
@@ -213,15 +230,33 @@ class AppBuilderProject():
 
     def GetDefCompCnlNameSpace(self, comp, grp):
         return self.GetDefCompCnlByKey(comp, grp, "NameSpace")
+        
+    def GetDefCompCnlNames(self, comp, grp):
+        return self.GetDefCompCnlByKey(comp, grp, "Names")
 
     def GetDefCompCnlMultiplicity(self, comp, grp):
         return self.GetDefCompCnlByKey(comp, grp, "Multiplicity")
 
+    def GetPlatformComp(self, comp):
+        """Return the component if it exists."""
+        if comp in self.JSON_platform["Components"]:
+            result = comp
+        else:
+            result = "null"
+            
+        return result
+        
     def GetPlatformCompList(self):
         """Return the component list in the project."""
         key_list = ["Components"]
         result = self.GetValueListByKey(self.JSON_platform, key_list)
         return result
+
+    def GetAllCompList(self):
+        comp_plf_list = self.GetPlatformCompList()
+        comp_prj_list = self.GetProjectCompList()
+        comp_list = self.GetUniqueList(comp_plf_list + comp_prj_list)
+        return comp_list
 
     def GetPlatformCompCfgByKey(self, comp, key):
         """Extract platform component Name."""
@@ -229,10 +264,6 @@ class AppBuilderProject():
         key_list = ["Components", comp, key]
         result = self.GetValueByKeyList(self.JSON_platform, key_list)
         return result
-
-    def GetPlatformCompName(self, comp):
-        """Extract platform component Name."""
-        return self.GetPlatformCompCfgByKey(comp, "Name")
 
     def GetPlatformCompPath(self, comp):
         """Extract  platform component path."""
@@ -248,7 +279,6 @@ class AppBuilderProject():
         comp_list = self.GetProjectCompList()
         if comp in comp_list:
             pathSet = {}
-            pathSet["Name"] = self.GetPlatformCompName(comp)
             pathSet["git"] = self.GetPlatformCompGit(comp)
             pathSet["Path"] = self.GetPlatformCompPath(comp)
         return pathSet
@@ -275,6 +305,46 @@ class AppBuilderProject():
                         result = dictGrp[grp]
         return result
 
+    def SetProjectFileName(self, pathname):
+        """Set project File Name."""
+        filename = os.path.basename(pathname).replace("\\", "/")
+        key_list = ["FileName"]
+        result = self.SetValueByKeyList(self.JSON_project, key_list, filename)
+        return filename
+
+    def SetProjectHomeDir(self, pathname):
+        """Set project File Name."""
+        homeDir = os.path.dirname(pathname).replace("\\", "/")
+        key_list = ["HomeDir"]
+        result = self.SetValueByKeyList(self.JSON_project, key_list, homeDir)
+        return homeDir
+
+    def SetProjectFilePath(self, pathname):
+        """Set project File Path."""
+        fileName = self.SetProjectFileName(pathname)
+        homeDir = self.SetProjectHomeDir(pathname)
+        filePath = homeDir + "/" + fileName
+        return filePath
+
+    def GetProjectFileName(self):
+        """Get project File Name."""
+        key_list = ["FileName"]
+        result = self.GetValueByKeyList(self.JSON_project, key_list)
+        return result
+
+    def GetProjectHomeDir(self):
+        """Get project Home Directory."""
+        key_list = ["HomeDir"]
+        result = self.GetValueByKeyList(self.JSON_project, key_list)
+        return result
+
+    def GetProjectFilePath(self):
+        """Return project File Path."""
+        homeDir = self.GetProjectHomeDir()
+        fileName = self.GetProjectFileName()
+        filePath = homeDir + "/" + fileName
+        return filePath
+
     def GetProjectCompList(self):
         """Return the component list in the project."""
         key_list = ["Components"]
@@ -283,14 +353,10 @@ class AppBuilderProject():
 
     def SetValueByKeyList(self, JSON_object, key_list, value):
         result = "null"
-        # print(key_list)
         if len(key_list) > 0:
             key = key_list[-1]
             new_keylist = key_list[:-1]
             objRef = self.GetValueByKeyList(JSON_object, new_keylist)
-            # print(new_keylist)
-            # print(key)
-            # print(objRef)
             if objRef != "null":
                 objRef[key] = value
                 result = objRef
@@ -299,58 +365,86 @@ class AppBuilderProject():
     def AddObjectByKeylist(self, JSON_object, key_list):
         # TODO think about recursive
         # result = "null"
-        empty_dict = {} # don't use previous, should be a new assignment
+        empty_dict = {}  # don't use previous, should be a new assignment
         result = self.GetValueByKeyList(JSON_object, key_list)
         if result == "null":
             result = self.SetValueByKeyList(JSON_object, key_list, empty_dict)
         return result
 
-
     def AddPrjComp(self, comp):
         """Add component object."""
 
         key_list = ["Components"]
-        result = self.AddObjectByKeylist(self.JSON_project, key_list )
+        result = self.AddObjectByKeylist(self.JSON_project, key_list)
 
         key_list = ["Components", comp]
         result = self.AddObjectByKeylist(self.JSON_project, key_list)
-        
+
         return result
 
     def AddPrjCompGrp(self, comp, grp):
         """Add component object."""
 
-        key_list = ["Components",comp]
+        key_list = ["Components", comp]
         result = self.GetValueByKeyList(self.JSON_project, key_list)
         if result != "null":
-            key_list = ["Components",comp,"Groups"]
-            result = self.AddObjectByKeylist(self.JSON_project, key_list )
-            
+            key_list = ["Components", comp, "Groups"]
+            result = self.AddObjectByKeylist(self.JSON_project, key_list)
+
             key_list = ["Components", comp, "Groups", grp]
-            result = self.AddObjectByKeylist(self.JSON_project, key_list )
-            
+            result = self.AddObjectByKeylist(self.JSON_project, key_list)
+
         return result
 
-    def AddPrjCompGrpCnl(self, comp, grp,cnl):
+    def AddPrjCompGrpCnl(self, comp, grp, cnl):
         """Add component object."""
 
-        key_list = ["Components",comp, "Groups", grp]
+        key_list = ["Components", comp, "Groups", grp]
         result = self.GetValueByKeyList(self.JSON_project, key_list)
         if result != "null":
-            key_list = ["Components",comp,"Groups", grp, "Channels"]
-            result = self.AddObjectByKeylist(self.JSON_project, key_list )
-            
-            key_list = ["Components", comp, "Groups", grp, "Channels", cnl]
-            result = self.SetValueByKeyList(self.JSON_project, key_list , "null")
-            
-        return result
+            key_list = ["Components", comp, "Groups", grp, "Channels"]
+            result = self.AddObjectByKeylist(self.JSON_project, key_list)
 
-    def AddPrjCompGrpCnlLink(self, comp, grp,cnl,link):
+            key_list = ["Components", comp, "Groups", grp, "Channels", cnl]
+            result = self.SetValueByKeyList(self.JSON_project, key_list,
+                                            "null")
+
+        return result
+    
+    def GetUniqueList(self, in_list):
+        """Extract unique list"""
+        out_list = []
+        for item in in_list:
+            if item not in out_list:
+                out_list.append(item)
+        return out_list
+
+
+    def GetCompStatusColor(self, comp):
+        """Extract color according to the comp availability status """ 
+
+        comp_plf_list = self.GetPlatformCompList()
+        comp_prj_list = self.GetProjectCompList()
+
+        # New component
+        color = "red" # red
+        # Platform component
+        if comp in comp_plf_list:
+            color = "navy"   # blue
+            # Installed Platform component
+            if comp in comp_prj_list:
+                color = "forest green"
+            # UN Installed Platform component
+            if self.LoadCompConfigFile(comp) == False:
+                color = "purple"
+        return color
+
+    def AddPrjCompGrpCnlLink(self, comp, grp, cnl, link):
         """Add component object."""
-        
+
         key_list = ["Components", comp, "Groups", grp, "Channels", cnl]
-        result = self.SetValueByKeyList(self.JSON_project, key_list , link)
-            
+        result = self.SetValueByKeyList(self.JSON_project, key_list, link)
+
         return result
 
     def SetPrjCompCfgByKey(self, comp, key, value):
@@ -359,19 +453,11 @@ class AppBuilderProject():
         result = self.SetValueByKeyList(self.JSON_project, key_list, value)
         return result
 
-    def SetPrjCompName(self, comp, value):
-        """Add component name."""
-        return self.SetPrjCompCfgByKey(comp, "Name", value)
-    
     def SetPrjCompGrpCfgByKey(self, comp, grp, key, value):
         """Extract platform component Name."""
         key_list = ["Components", comp, "Groups", grp, key]
         result = self.SetValueByKeyList(self.JSON_project, key_list, value)
         return result
-
-    def SetPrjCompGrpName(self, comp, grp, value):
-        """Add component name."""
-        return self.SetPrjCompGrpCfgByKey(comp, grp, "Name", value)
 
     def SetPrjCompGrpDep(self, comp, grp, value):
         """Add component name."""
@@ -385,16 +471,19 @@ class AppBuilderProject():
         """Add component name."""
         return self.SetPrjCompGrpCfgByKey(comp, grp, "Pull", value)
 
-
     def GetPrjCompCfgByKey(self, comp, key):
         """Extract platform component Name."""
         key_list = ["Components", comp, key]
         result = self.GetValueByKeyList(self.JSON_project, key_list)
         return result
 
-    def GetPrjCompName(self, comp):
-        """Extract component name."""
-        return self.GetPrjCompCfgByKey(comp, "Name")
+    def GetPrjCompName(self,comp):
+        """Return the component if exists in the project."""
+        if comp in self.JSON_project["Components"]:
+            result = comp
+        else:
+            result = "null"
+        return result
 
     def GetPrjCompPath(self, comp):
         """Extract component path."""
@@ -404,7 +493,7 @@ class AppBuilderProject():
         """Extract component git."""
         return self.GetPrjCompCfgByKey(comp, "git")
 
-    def GetPrjGrpList(self, comp):
+    def GetPrjCompGrpList(self, comp):
         """Return the component group list in the project."""
         key_list = ["Components", comp, "Groups"]
         result = self.GetValueListByKey(self.JSON_project, key_list)
@@ -429,7 +518,7 @@ class AppBuilderProject():
         """Extract Group Push method."""
         return self.GetPrjCompGrpCfgByKey(comp, grp, "Dependency")
 
-    def GetPrjGrpCnlList(self, comp, grp):
+    def GetPrjCompGrpCnlList(self, comp, grp):
         """Return the component group channel list in the project."""
         key_list = ["Components", comp, "Groups", grp, "Channels"]
         result = self.GetValueListByKey(self.JSON_project, key_list)
@@ -443,8 +532,9 @@ class AppBuilderProject():
 
     def AddProjectCompFromPlatform(self, comp):
 
-        componetFilePath = self.prjDir + "/" + self.platformDir + "/" + self.platformFileName
-        projectFilePath = self.prjDir + "/" + self.prjFileName
+        componetFilePath = self.GetProjectHomeDir(
+        ) + "/" + self.platformDir + "/" + self.platformFileName
+        projectFilePath = self.GetProjectFilePath()
         # with open(componetFilePath, "r") as read_file:
         #     JSON_CompList = json.load(read_file)
         JSON_CompList = self.JSON_platform
@@ -455,24 +545,23 @@ class AppBuilderProject():
             if comp in JSON_CompList["Components"]:
                 JSON_Comps[comp] = JSON_CompList["Components"][comp]
             else:
-                JSON_Comps[comp] = {"Name": comp}
+                JSON_Comps[comp] = {}
         # with open(projectFilePath, 'w') as file:
         #     json.dump(self.JSON_project, file, indent=4)
         #     file.close()
 
-
     def GenProjectConfig(self):
         """Handle Config Generate Action."""
-        jsonFile = self.prjDir + "/" + self.prjFileName
-        headerFile = self.prjDir + "/" + self.prjFileName + "_cfg_gen.h"
-        srcFile = self.prjDir + "/" + self.prjFileName + "_cfg_gen.cpp"
+        jsonFile = self.GetProjectFilePath()
+        headerFile = self.GetProjectFilePath() + "_cfg_gen.h"
+        srcFile = self.GetProjectFilePath() + "_cfg_gen.cpp"
         app_builder_gen.CfgHeadGen(jsonFile, headerFile)
         app_builder_gen.CfgSrcGen(jsonFile, srcFile)
 
     def GenProjectDot(self):
         """Handle Dot Generate Action."""
-        jsonFile = self.prjDir + "/" + self.prjFileName
-        dotFile = self.prjDir + "/" + self.prjFileName + ".dot"
+        jsonFile = self.GetProjectFilePath()
+        dotFile = self.GetProjectFilePath() + ".dot"
         app_builder_gen.DotGen(jsonFile, dotFile)
 
     def GenProjectTree(self):
@@ -483,7 +572,7 @@ class AppBuilderProject():
                 componentName = linkComps[comp]
                 if "Path" in linkComps[comp]:
                     compPath = linkComps[comp]["Path"]
-                    compDir = str(self.prjDir + "/" + compPath)
+                    compDir = str(self.GetProjectHomeDir() + "/" + compPath)
                     if not os.path.exists(compDir):
                         os.makedirs(compDir)
                     if "git" in linkComps[comp]:

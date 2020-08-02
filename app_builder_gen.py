@@ -4,12 +4,13 @@
 from graphviz import Digraph
 import json
 
+
 def CfgHeadGen(jsonFile, headerFile):
     """Generate component configuration Header."""
     #
     with open(jsonFile, "r") as read_file:
         JSON_object = json.load(read_file)
-        applicationName = JSON_object["Name"]
+        applicationName = JSON_object["ProjectName"]
         appDescription = JSON_object["Description"]
 
         f_head = open(headerFile, "w")
@@ -34,41 +35,40 @@ def CfgHeadGen(jsonFile, headerFile):
         for comp in linkComps:
 
             componentName = linkComps[comp]
-            if "Name" in linkComps[comp]:
-                componentName = linkComps[comp]["Name"]
-            
+
             if (componentName != "null"):
-                f_head.write("#define "+ componentName.upper()+"_CONFIG"+"\n")
+                f_head.write("#define " + componentName.upper() + "_CONFIG" +
+                             "\n")
 
                 # Components Groups
                 if "Groups" in linkComps[comp]:
-                   
+
                     linkGroup = linkComps[comp]["Groups"]
                     for grp in linkGroup:
                         groupName = str(linkGroup[grp])
 
-                        # Name
-                        if "Name" in linkGroup[grp]:
-                            groupName = linkGroup[grp]["Name"]
-
                         # Channels
                         if "Channels" in linkGroup[grp]:
-                            f_head.write("enum "+ groupName.upper()+"_IdType {")
+                            f_head.write("enum " + groupName.upper() +
+                                         "_IdType {")
                             linkChannels = linkGroup[grp]["Channels"]
                             for cnl in linkChannels:
                                 f_head.write(cnl + ", ")
-                            f_head.write(groupName.upper() +"_CHANNEL_NR_OF};\n")
-                        
+                            f_head.write(groupName.upper() +
+                                         "_CHANNEL_NR_OF};\n")
+
                         # Defines
                         if "Defines" in linkGroup[grp]:
                             linkDefines = linkGroup[grp]["Defines"]
                             for cnl in linkDefines:
-                                f_head.write("#define "+cnl + " " + str(linkDefines[cnl])+ "\n")
-                        
+                                f_head.write("#define " + cnl + " " +
+                                             str(linkDefines[cnl]) + "\n")
+
                 # Components Paths in project
                 if "Path" in linkComps[comp]:
                     linkPath = linkComps[comp]["Path"]
-                    f_head.write("#include \""+ str(linkPath) + str(componentName)+ ".h\"\n")
+                    f_head.write("#include \"" + str(linkPath) +
+                                 str(componentName) + ".h\"\n")
 
                 f_head.write("\n")
 
@@ -81,10 +81,10 @@ def CfgHeadGen(jsonFile, headerFile):
 
 def CfgSrcGen(jsonFile, srcFile):
     """Generate component configuration Source file."""
-    #  
+    #
     with open(jsonFile, "r") as read_file:
         JSON_object = json.load(read_file)
-        applicationName = JSON_object["Name"]
+        applicationName = JSON_object["ProjectName"]
         appDescription = JSON_object["Description"]
 
         f_src = open(srcFile, "w")
@@ -105,17 +105,14 @@ def CfgSrcGen(jsonFile, srcFile):
 Std_ReturnType " + applicationName + "_config(void)\n\
 {\n\
     Serial.begin(115200);\n\
-    Serial.println(\""+appDescription+"\");\n\
+    Serial.println(\"" + appDescription + "\");\n\
     Std_ReturnType error = E_OK;\n")
-
 
         linkComps = JSON_object["Components"]
         for comp in linkComps:
 
             componentName = linkComps[comp]
-            if "Name" in linkComps[comp]:
-                componentName = linkComps[comp]["Name"]
-            
+
             if (componentName != "null"):
                 # Components Groups
                 if "Groups" in linkComps[comp]:
@@ -123,51 +120,54 @@ Std_ReturnType " + applicationName + "_config(void)\n\
                     for grp in linkGroup:
                         groupName = str(linkGroup[grp])
 
-                        # Name
-                        if "Name" in linkGroup[grp]:
-                            groupName = linkGroup[grp]["Name"]
-                        # Parent 
+                        # Parent
                         parentChannelStr = ""
                         if "Parent" in linkGroup[grp]:
                             parentChannelStr = linkGroup[grp]["Parent"] + ", "
 
                         # Channels
                         if "Channels" in linkGroup[grp]:
-                            
+
                             f_src.write("\n")
                             linkChannels = linkGroup[grp]["Channels"]
 
                             for el in linkChannels:
-                                if (linkChannels[el]!= "null"):
+                                if (linkChannels[el] != "null"):
                                     f_src.write("\
-    error += "+ componentName.upper() +"_ChannelSetup(" + parentChannelStr + el +", "+linkChannels[el]+");\n")
+    error += " + componentName.upper() + "_ChannelSetup(" + parentChannelStr +
+                                                el + ", " + linkChannels[el] +
+                                                ");\n")
                             # Pull
                             if "Pull" in linkGroup[grp]:
-                                
+
                                 f_src.write("\n")
                                 linkChannels = linkGroup[grp]["Channels"]
 
                                 for el in linkChannels:
-                                    if (linkChannels[el]!= "null"):
+                                    if (linkChannels[el] != "null"):
                                         f_src.write("\
-    error += "+ componentName.upper() +"_SetPullMethod(" + parentChannelStr + el +", "+linkGroup[grp]["Pull"]+");\n")
+    error += " + componentName.upper() + "_SetPullMethod(" + parentChannelStr +
+                                                    el + ", " +
+                                                    linkGroup[grp]["Pull"] +
+                                                    ");\n")
 
                             # Push
                             if "Push" in linkGroup[grp]:
-                                
+
                                 f_src.write("\n")
                                 linkChannels = linkGroup[grp]["Channels"]
 
                                 for el in linkChannels:
-                                    if (linkChannels[el]!= "null"):
+                                    if (linkChannels[el] != "null"):
                                         f_src.write("\
-    error += "+ componentName.upper() +"_SetPushMethod(" +parentChannelStr+ el +", "+linkGroup[grp]["Push"]+");\n")
-
+    error += " + componentName.upper() + "_SetPushMethod(" + parentChannelStr +
+                                                    el + ", " +
+                                                    linkGroup[grp]["Push"] +
+                                                    ");\n")
 
                             f_src.write("\
     Serial.print(\"" + groupName.upper() + " configured - Error : \");\n\
     Serial.println(error);\n")
-                               
 
                 f_src.write("\n")
 
@@ -183,14 +183,12 @@ def DotGen(jsonFile, dotFile):
 
     with open(jsonFile, "r") as read_file:
         JSON_object = json.load(read_file)
-        applicationName = JSON_object["Name"]
+        applicationName = JSON_object["ProjectName"]
         linkComps = JSON_object["Components"]
         for comp in linkComps:
 
             componentName = linkComps[comp]
-            if "Name" in linkComps[comp]:
-                componentName = linkComps[comp]["Name"]
-            
+
             if (componentName != "null"):
 
                 # Components Groups
@@ -199,46 +197,25 @@ def DotGen(jsonFile, dotFile):
                     for grp in linkGroup:
                         groupName = str(linkGroup[grp])
 
-                        # Name
-                        if "Name" in linkGroup[grp]:
-                            groupName = linkGroup[grp]["Name"]
-
                         # Channels
                         if "Channels" in linkGroup[grp]:
                             linkChannels = linkGroup[grp]["Channels"]
                             for el in linkChannels:
                                 # NOTE: the subgraph name needs to begin with 'cluster' (all lowercase)
                                 #       so that Graphviz recognizes it as a special cluster subgraph
-                                with dot.subgraph(name="cluster_"+linkComps[comp]["Name"]) as c:
+                                with dot.subgraph(
+                                        name="cluster_" +
+                                        linkComps[comp]) as c:
                                     c.attr(color='blue')
                                     c.node_attr['style'] = 'filled'
-                                    c.attr(label=linkComps[comp]["Name"])
+                                    c.attr(label=linkComps[comp])
                                     c.node(el)
-                                print (el)
-                                dot.edge( el, str(linkChannels[el]))
+                                print(el)
+                                dot.edge(el, str(linkChannels[el]))
 
-    # with open(jsonFile, "r") as read_file:
-    #     JSON_object = json.load(read_file)
-
-    #     linkComps = JSON_object["Components"]
-    #     for comp in linkComps:
-
-    #         linkGroup = linkComps[comp]["Groups"]["Channels"]
-    #         for el in linkGroup:
-    #             # NOTE: the subgraph name needs to begin with 'cluster' (all lowercase)
-    #             #       so that Graphviz recognizes it as a special cluster subgraph
-    #             with dot.subgraph(name="cluster_"+linkComps[comp]["Component"]) as c:
-    #                 c.attr(color='blue')
-    #                 c.node_attr['style'] = 'filled'
-    #                 c.attr(label=linkComps[comp]["Name"])
-    #                 c.node(el)
-
-    #             dot.edge( el, linkGroup[el])
-
+ 
     dot.render('test-output/round-table.gv', view=True)
     print(dot.source)
 
     # g = Digraph('G', filename='cluster.gv')
     # g.view()
-
-
