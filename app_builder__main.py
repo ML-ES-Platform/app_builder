@@ -45,9 +45,9 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         """Init Main Window."""
         super(MainWindow, self).__init__(parent, title=title, size=(800, 700))
+        curPrj.cbChangedParent = self
         self.Centre()
         self.parent = parent
-        self.createStatusBar()
         self.createMenu()
         # Create a panel and notebook (tabs holder)
         main_panel = wx.Panel(self)
@@ -74,13 +74,13 @@ class MainWindow(wx.Frame):
         sizer.Add(nb, 1, wx.EXPAND)
         main_panel.SetSizer(sizer)
 
+        self.statusbar = self.CreateStatusBar(2)  #A Statusbar at the bottom of the window
+
+
     def OnTabChange(self, event):
         # self.grp_panel.OnEnterWindow(event)
         self.build_panel.OnEnterWindow(event)
 
-    def createStatusBar(self):
-        """Add Status bar to Main Window."""
-        self.CreateStatusBar()  #A Statusbar at the bottom of the window
 
     def createMenu(self):
         """Create the menu of the Main Window."""
@@ -92,13 +92,13 @@ class MainWindow(wx.Frame):
                                    "New Configuration")
         menuSave = file_menu.Append(wx.ID_SAVE, "&Save\tCtrl+S",
                                     "Save Configuration")
-        menuSaveAs = file_menu.Append(wx.ID_SAVE, "&Save As\tCtrl+A",
+        menuSaveAs = file_menu.Append(wx.ID_SAVEAS, "&Save As\tCtrl+A",
                                       "Save Configuration with a new name")
         menuOpen = file_menu.Append(wx.ID_OPEN, "&Open\tCtrl+O",
                                     "Open Configuration")
-        menuOpenLast = file_menu.Append(wx.ID_OPEN, "&Open last\tCtrl+L",
+        menuOpenLast = file_menu.Append(wx.ID_LAST, "&Open last\tCtrl+L",
                                         "Open Last Configuration")
-        menuReload = file_menu.Append(wx.ID_OPEN, "&Reload\tCtrl+R",
+        menuReload = file_menu.Append(wx.ID_REFRESH, "&Reload\tCtrl+R",
                                       "Reload Configuration")
         menuExit = file_menu.Append(wx.ID_EXIT, "&Quit\tCtrl+Q",
                                     "Quit application")
@@ -164,26 +164,30 @@ class MainWindow(wx.Frame):
     def OnNew(self, event):
         """Save current Configuration."""
         #TODO
-        if curPrj.prjContentNotSaved:
+        if curPrj.prjContentChanged:
             if wx.MessageBox("Current content has not been saved! Proceed?",
                              "Please confirm", wx.ICON_QUESTION | wx.YES_NO,
                              self) == wx.NO:
                 return
-        with wx.FileDialog(self,
-                           "Create new ES Platform",
-                           wildcard="ES Cfg (*.json)|*.json",
-                           style=wx.FD_SAVE
-                           | wx.FD_OVERWRITE_PROMPT) as fileDialog:
-            if fileDialog.ShowModal() == wx.ID_CANCEL:
-                return  # the user changed their mind
-            # save the current contents in the file
-            pathname = fileDialog.GetPath()
-            curPrj.NewProjectFile(pathname)
-            self.prj_panel.UpdateProjectComptList()
-            self.prj_panel.showCompConfig("")
-            self.filehistory.AddFileToHistory(pathname)
-            self.filehistory.Save(self.config)
-            self.config.Flush()
+        # with wx.FileDialog(self,
+        #                    "Create new ES Platform",
+        #                    wildcard="ES Cfg (*.json)|*.json",
+        #                    style=wx.FD_SAVE
+        #                    | wx.FD_OVERWRITE_PROMPT) as fileDialog:
+        #     if fileDialog.ShowModal() == wx.ID_CANCEL:
+        #         return  # the user changed their mind
+        # # save the current contents in the file
+        # pathname = fileDialog.GetPath()
+        curPrj.NewProjectFile("New Project")
+        self.prj_panel.UpdateProjectComptList()
+        self.prj_panel.showCompConfig("")
+        # self.filehistory.AddFileToHistory(pathname)
+        # self.filehistory.Save(self.config)
+        # self.config.Flush()
+        self.prjContentChanged = False
+        self.statusbar.SetStatusText(curPrj.GetProjectFilePath(),0)
+        self.statusbar.SetStatusText(" No Changes ",1)
+
 
     def OnReload(self, event):
         # Proceed loading the file chosen by the user
@@ -212,7 +216,7 @@ class MainWindow(wx.Frame):
         #TODO
         # notify if project is not saved
         if curPrj.GetProjectFileName() != "null":
-            if curPrj.prjContentNotSaved:
+            if curPrj.prjContentChanged:
                 if wx.MessageBox(
                         "Current content has not been saved! Proceed?",
                         "Please confirm", wx.ICON_QUESTION | wx.YES_NO,
@@ -241,7 +245,7 @@ class MainWindow(wx.Frame):
                     self) == wx.NO:
                 return
         # notify if project is not saved
-        if curPrj.prjContentNotSaved:
+        if curPrj.prjContentChanged:
             if wx.MessageBox("Current content has not been saved! Proceed?",
                              "Please confirm", wx.ICON_QUESTION | wx.YES_NO,
                              self) == wx.NO:
@@ -259,9 +263,13 @@ class MainWindow(wx.Frame):
         try:
             curPrj.LoadProjectFile(pathname)
             # Update window title with file name
-            title = app_title + " - " + curPrj.prjFileName
+            title = app_title + " - " + curPrj.GetProjectFileName()
             self.SetTitle(title)
-            #register file in file history
+            self.prjContentChanged = False
+            
+            self.statusbar.SetStatusText(curPrj.GetProjectFilePath(),0)
+            self.statusbar.SetStatusText(" No Changes ",1)
+             #register file in file history
             self.filehistory.AddFileToHistory(pathname)
             self.filehistory.Save(self.config)
             self.config.Flush()
@@ -279,6 +287,8 @@ class MainWindow(wx.Frame):
         self.comp_panel.UpdatePlatformComptList()
         self.build_panel.UpdatePanel()
 
+
+
     def OnSaveAs(self, event):
         """Save current Configuration."""
         with wx.FileDialog(self,
@@ -295,6 +305,8 @@ class MainWindow(wx.Frame):
     def OnSave(self, event):
         """Process Save project menu event"""
         pathname = curPrj.GetProjectFilePath()
+        print("here")
+        print(pathname)
         # check if the file exists
         if not os.path.isfile(pathname):
             # if no create it by file dialog
@@ -313,12 +325,20 @@ class MainWindow(wx.Frame):
     def doSaveData(self, pathname):
         """Save current Configuration to a json file."""
         curPrj.SetProjectFilePath(pathname)
+
         # global JSON_object
         try:
             curPrj.SaveProjectFile()
+            title = app_title + " - " + curPrj.GetProjectFileName()
+            self.SetTitle(title)
+            self.prjContentChanged = False
+            self.statusbar.SetStatusText(curPrj.GetProjectFilePath(),0)
+            self.statusbar.SetStatusText(" No Changes ",1)
+
             self.filehistory.AddFileToHistory(pathname)
             self.filehistory.Save(self.config)
             self.config.Flush()
+
         except IOError:
             wx.LogError("Cannot save current data in file '%s'." % pathname)
 
@@ -337,6 +357,11 @@ class MainWindow(wx.Frame):
     def OnTreeGen(self, event):
         """Handle Project Tree Generate Action."""
         curPrj.GenProjectTree()
+
+    def OnProjectChanged(self):
+        print("project change detected")
+        self.statusbar.SetStatusText("* Changed",1)
+
 
 
 if __name__ == '__main__':

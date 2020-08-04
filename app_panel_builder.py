@@ -522,7 +522,6 @@ class ProjectBuilderPanel(wx.Panel):
 
     def UpdateSrcLinkComboBox(self, link_name_cb, comp, grp, link_in="null"):
         """Update Link Selector."""
-
         #extract dependency ist
         dep_comp = self.curPrj.GetPrjCompGrpDep(comp, grp)
         print(dep_comp)
@@ -719,7 +718,7 @@ class ProjectBuilderPanel(wx.Panel):
         comp_prj_list = self.curPrj.GetProjectCompList()
 
         item_list.DeleteAllItems()
-        # Groups Iterate
+        # Components Iterate
         index = 0
         for comp in comp_prj_list:
             # Insert component in list

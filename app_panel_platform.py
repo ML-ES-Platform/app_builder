@@ -252,6 +252,6 @@ class PlatformPanel(wx.Panel):
             color = self.curPrj.GetCompStatusColor(comp)
             self.comp_list.SetItemTextColour(index, color)
             index += 1
-
+                    
         return
 

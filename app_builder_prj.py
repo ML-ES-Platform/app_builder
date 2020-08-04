@@ -1,10 +1,15 @@
+"""Project management module."""
 import json
 import os
 import git
 import app_builder_gen as gen
 
+
 class AppBuilderProject(gen.AppGenerator):
     def __init__(self, x):
+        self.prjContentChanged = False
+        self.cbChangedParent = "null"
+
         self.platformUrl = "none"
         self.platformDir = "none"
         self.platformFileName = "none"
@@ -18,16 +23,15 @@ class AppBuilderProject(gen.AppGenerator):
         self.activeComponent = "none"
         self.activeGroup = "none"
         self.activeChannel = "none"
-        self.SetProjectFileName("none")
-        self.SetProjectHomeDir("none")
+        # self.SetProjectFileName("none")
+        # self.SetProjectHomeDir("none")
         self.prjContentChanged = False
-        self.OnProjectChangedCallback = "null"
 
     def NewProjectFile(self, pathname):
 
         self.JSON_project = {}
         self.SetProjectFilePath(pathname)
-        self.SaveProjectFile()
+        # self.SaveProjectFile()
 
     def LoadProjectFile(self, pathname):
         """Open the Json Project configuration File."""
@@ -36,6 +40,7 @@ class AppBuilderProject(gen.AppGenerator):
             self.SetProjectFilePath(pathname)
             file.close()
         filePath = self.GetProjectFilePath()
+        self.prjContentChanged = False
 
     def SaveProjectFile(self):
         """Save the Json Project configuration File."""
@@ -89,10 +94,15 @@ class AppBuilderProject(gen.AppGenerator):
             if objRef != "null":
                 objRef[key] = value
                 result = objRef
-                self.prjContentChanged
-                if self.OnProjectChangedCallback != "null"
-                    self.OnProjectChangedCallback()
+                self.prjContentChanged = True
+                self.OnProjectChangedCallback()
         return result
+
+    def OnProjectChangedCallback(self):
+        if self.cbChangedParent == "null":
+            print("the Changed call back is not set")
+        else:
+            self.cbChangedParent.OnProjectChanged()
 
     def AddObjectByKeylist(self, JSON_object, key_list):
         # TODO think about recursive
@@ -207,7 +217,7 @@ class AppBuilderProject(gen.AppGenerator):
     def GetDefCompGrpMultiplicity(self, comp, grp):
         return self.GetDefCompGrpByKey(comp, grp, "Multiplicity")
 
-    def MultiplicityDecode(self, multiplicity, max_mult = 5):
+    def MultiplicityDecode(self, multiplicity, max_mult=5):
         """Decode Multiplicity string."""
         counts = [0, 0]
         str_counts = multiplicity.split("-")
@@ -228,7 +238,6 @@ class AppBuilderProject(gen.AppGenerator):
         elif counts[1] == -1:
             counts[1] = max_mult
 
-
         return counts
 
     def GetDefCompGrpNameSpace(self, comp, grp):
@@ -238,7 +247,7 @@ class AppBuilderProject(gen.AppGenerator):
         return self.GetDefCompGrpByKey(comp, grp, "Names")
 
     def GetDefCompGrpDepList(self, comp, grp):
-        return self.GetDefCompGrpListByKey(comp, grp, "Dependency" )
+        return self.GetDefCompGrpListByKey(comp, grp, "Dependency")
 
     def GetDefCompGrpDefList(self, comp, grp):
         return self.GetDefCompGrpListByKey(comp, grp, "Defines")
@@ -256,7 +265,7 @@ class AppBuilderProject(gen.AppGenerator):
 
     def GetDefCompCnlNameSpace(self, comp, grp):
         return self.GetDefCompCnlByKey(comp, grp, "NameSpace")
-        
+
     def GetDefCompCnlNames(self, comp, grp):
         return self.GetDefCompCnlByKey(comp, grp, "Names")
 
@@ -269,19 +278,33 @@ class AppBuilderProject(gen.AppGenerator):
             result = comp
         else:
             result = "null"
-            
+
         return result
-        
+
     def GetPlatformCompList(self):
         """Return the component list in the project."""
         key_list = ["Components"]
         result = self.GetValueListByKey(self.JSON_platform, key_list)
         return result
 
+    def GetPlatformCompDepList(self):
+        """Return the component list in the project."""
+        comp_list = []
+        plf_comp_list = self.GetPlatformCompList()
+        for comp in plf_comp_list:
+            item_list = self.GetDefCompDepList(comp)
+            for item in item_list:
+                if item not in comp_list:
+                    comp_list.append(item)
+        return comp_list
+
     def GetAllCompList(self):
-        comp_plf_list = self.GetPlatformCompList()
-        comp_prj_list = self.GetProjectCompList()
-        comp_list = self.GetUniqueList(comp_plf_list + comp_prj_list)
+        plf_comp_list = self.GetPlatformCompList()
+        plf_comp_dep_list = self.GetPlatformCompDepList()
+        prj_comp_list = self.GetProjectCompList()
+        prj_comp_dep_list = self.GetProjectCompDepList()
+        comp_list = self.GetUniqueList(plf_comp_list + plf_comp_dep_list +
+                                       prj_comp_list + prj_comp_dep_list)
         return comp_list
 
     def GetPlatformCompCfgByKey(self, comp, key):
@@ -377,6 +400,37 @@ class AppBuilderProject(gen.AppGenerator):
         result = self.GetValueListByKey(self.JSON_project, key_list)
         return result
 
+
+
+
+    def GetPrjCompAllDepList(self, comp):
+        dep_list = []
+        grp_list = self.GetPrjCompGrpList(comp)
+        for grp in grp_list:
+            dep = self.GetPrjCompGrpDep(comp, grp)
+            if dep != "null":
+                dep_list.append(dep)
+        return dep_list
+
+
+    def GetProjectCompDepList(self):
+        """Return the component dependency list in the project."""
+        comp_list = []
+        prj_comp_list = self.GetProjectCompList()
+        for comp in prj_comp_list:
+            item_list = self.GetPrjCompAllDepList(comp)
+            for item in item_list:
+                if item not in comp_list:
+                    comp_list.append(item)
+        return comp_list
+
+
+
+
+        key_list = ["Components"]
+        result = self.GetValueListByKey(self.JSON_project, key_list)
+        return result
+
     def AddPrjComp(self, comp):
         """Add component object."""
 
@@ -416,7 +470,7 @@ class AppBuilderProject(gen.AppGenerator):
                                             "null")
 
         return result
-    
+
     def GetUniqueList(self, in_list):
         """Extract unique list"""
         out_list = []
@@ -425,24 +479,34 @@ class AppBuilderProject(gen.AppGenerator):
                 out_list.append(item)
         return out_list
 
-
     def GetCompStatusColor(self, comp):
-        """Extract color according to the comp availability status """ 
+        """Extract color according to the comp availability status """
 
-        comp_plf_list = self.GetPlatformCompList()
-        comp_prj_list = self.GetProjectCompList()
+        plf_comp_list = self.GetPlatformCompList()
+        plf_comp_dep_list = self.GetPlatformCompDepList()
+        prj_comp_list = self.GetProjectCompList()
+        prj_comp_dep_list = self.GetProjectCompDepList()
+
 
         # New component
-        color = "red" # red
+        color = "red"  # red
         # Platform component
-        if comp in comp_plf_list:
-            color = "navy"   # blue
+        if comp in plf_comp_list:
+            color = "navy"  # blue
             # Installed Platform component
-            if comp in comp_prj_list:
+            if comp in prj_comp_list:
                 color = "forest green"
             # UN Installed Platform component
             if self.LoadCompConfigFile(comp) == False:
                 color = "purple"
+        #referenced in definition but not in component list
+        if comp in plf_comp_dep_list:
+            color = "violet red"
+        #referenced in components but not in component list
+        if comp in prj_comp_dep_list:
+            color = "sienna"
+
+
         return color
 
     def AddPrjCompGrpCnlLink(self, comp, grp, cnl, link):
@@ -483,7 +547,7 @@ class AppBuilderProject(gen.AppGenerator):
         result = self.GetValueByKeyList(self.JSON_project, key_list)
         return result
 
-    def GetPrjCompName(self,comp):
+    def GetPrjCompName(self, comp):
         """Return the component if exists in the project."""
         if comp in self.JSON_project["Components"]:
             result = comp
@@ -568,7 +632,7 @@ class AppBuilderProject(gen.AppGenerator):
         """Handle Dot Generate Action."""
         jsonFile = self.GetProjectFilePath()
         dotFile = self.GetProjectFilePath() + ".dot"
-        self.DotGen(self.JSON_project, "test.dot" )
+        self.DotGen(self.JSON_project, "test.dot")
         # self.DotGen(jsonFile, dotFile)
 
     def GenProjectTree(self):
@@ -586,4 +650,3 @@ class AppBuilderProject(gen.AppGenerator):
                         gitUrl = linkComps[comp]["git"]
 
                         git.Repo.clone_from(gitUrl, compDir)
-
