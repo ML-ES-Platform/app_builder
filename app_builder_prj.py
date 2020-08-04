@@ -1,9 +1,9 @@
 import json
 import os
 import git
+import app_builder_gen as gen
 
-
-class AppBuilderProject():
+class AppBuilderProject(gen.AppGenerator):
     def __init__(self, x):
         self.platformUrl = "none"
         self.platformDir = "none"
@@ -555,14 +555,15 @@ class AppBuilderProject():
         jsonFile = self.GetProjectFilePath()
         headerFile = self.GetProjectFilePath() + "_cfg_gen.h"
         srcFile = self.GetProjectFilePath() + "_cfg_gen.cpp"
-        app_builder_gen.CfgHeadGen(jsonFile, headerFile)
-        app_builder_gen.CfgSrcGen(jsonFile, srcFile)
+        self.CfgHeadGen(jsonFile, headerFile)
+        self.CfgSrcGen(jsonFile, srcFile)
 
     def GenProjectDot(self):
         """Handle Dot Generate Action."""
         jsonFile = self.GetProjectFilePath()
         dotFile = self.GetProjectFilePath() + ".dot"
-        app_builder_gen.DotGen(jsonFile, dotFile)
+        self.DotGen(self.JSON_project, "test.dot" )
+        # self.DotGen(jsonFile, dotFile)
 
     def GenProjectTree(self):
         """Handle Project Tree Generate Action."""
@@ -579,3 +580,4 @@ class AppBuilderProject():
                         gitUrl = linkComps[comp]["git"]
 
                         git.Repo.clone_from(gitUrl, compDir)
+
