@@ -18,9 +18,10 @@ class AppBuilderProject(gen.AppGenerator):
         self.activeComponent = "none"
         self.activeGroup = "none"
         self.activeChannel = "none"
-        self.prjContentNotSaved = False
         self.SetProjectFileName("none")
         self.SetProjectHomeDir("none")
+        self.prjContentChanged = False
+        self.OnProjectChangedCallback = "null"
 
     def NewProjectFile(self, pathname):
 
@@ -76,6 +77,31 @@ class AppBuilderProject(gen.AppGenerator):
             os.makedirs(platformDir)
 
         open(platformDir + "\\" + filename, 'w').write(resp.text)
+
+    # --------------------------
+
+    def SetValueByKeyList(self, JSON_object, key_list, value):
+        result = "null"
+        if len(key_list) > 0:
+            key = key_list[-1]
+            new_keylist = key_list[:-1]
+            objRef = self.GetValueByKeyList(JSON_object, new_keylist)
+            if objRef != "null":
+                objRef[key] = value
+                result = objRef
+                self.prjContentChanged
+                if self.OnProjectChangedCallback != "null"
+                    self.OnProjectChangedCallback()
+        return result
+
+    def AddObjectByKeylist(self, JSON_object, key_list):
+        # TODO think about recursive
+        # result = "null"
+        empty_dict = {}  # don't use previous, should be a new assignment
+        result = self.GetValueByKeyList(JSON_object, key_list)
+        if result == "null":
+            result = self.SetValueByKeyList(JSON_object, key_list, empty_dict)
+        return result
 
     # --------------------------
     def GetValueByKeyList(self, JSON_object, key_list):
@@ -349,26 +375,6 @@ class AppBuilderProject(gen.AppGenerator):
         """Return the component list in the project."""
         key_list = ["Components"]
         result = self.GetValueListByKey(self.JSON_project, key_list)
-        return result
-
-    def SetValueByKeyList(self, JSON_object, key_list, value):
-        result = "null"
-        if len(key_list) > 0:
-            key = key_list[-1]
-            new_keylist = key_list[:-1]
-            objRef = self.GetValueByKeyList(JSON_object, new_keylist)
-            if objRef != "null":
-                objRef[key] = value
-                result = objRef
-        return result
-
-    def AddObjectByKeylist(self, JSON_object, key_list):
-        # TODO think about recursive
-        # result = "null"
-        empty_dict = {}  # don't use previous, should be a new assignment
-        result = self.GetValueByKeyList(JSON_object, key_list)
-        if result == "null":
-            result = self.SetValueByKeyList(JSON_object, key_list, empty_dict)
         return result
 
     def AddPrjComp(self, comp):
