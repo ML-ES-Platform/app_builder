@@ -5,11 +5,12 @@ import wx
 
 class PlatformPanel(wx.Panel):
     """Panel for component list and the references in the project and git."""
+
     def __init__(self, parent, curPrj, panel_color):
         """Init Component list Panel."""
-
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(panel_color)
+        
         self.parent = parent
         self.curPrj = curPrj
 
@@ -30,6 +31,7 @@ class PlatformPanel(wx.Panel):
         self.compSelected = ""
 
     def LayoutBuild(self):
+        """Build panel Layout configuration."""
         topSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.comp_list = wx.ListCtrl(self, wx.ID_ANY, wx.DefaultPosition,
                                      wx.Size(150, -1), wx.LC_REPORT)
@@ -166,7 +168,7 @@ class PlatformPanel(wx.Panel):
 
     def UpdateComponentView(self, comp):
         """Component Selection action."""
-        res = self.curPrj.LoadCompConfigFile(comp)
+        # res = self.curPrj.LoadCompConfigFile(comp)
         # if res == True:
         res = self.curPrj.GetPlatformComp(comp)
         self.comp_name_txt.SetValue(res)
@@ -178,7 +180,7 @@ class PlatformPanel(wx.Panel):
         self.grp_list.DeleteAllItems()
         for item in item_list:
             self.grp_list.InsertItem(0, item)
-        item_list = self.curPrj.GetDefCompGrpNameList(comp)
+        item_list = self.curPrj.GetDefCompGrpList(comp)
         self.grp_name_txt.SetValue(str(item_list))
         item_list = self.curPrj.GetDefCompDefineList(comp)
         self.def_list.DeleteAllItems()
@@ -198,12 +200,14 @@ class PlatformPanel(wx.Panel):
             self.grp_dep_list.InsertItem(0, item)
 
     def OnGroupSelected(self, event):
+        """Handle group selection event."""
         grp = event.GetText()
         comp = self.compSelected
         self.UpdateGroupView(comp, grp)
 
     def UpdateGroupView(self, comp, grp):
-        self.curPrj.LoadCompConfigFile(comp)
+        """Update Group list vew (ListCtrl)."""
+        # self.curPrj.LoadCompConfigFile(comp)
         res = grp
         self.grp_name_txt.SetValue(res)
         res = self.curPrj.GetDefCompGrpMultiplicity(comp, grp)

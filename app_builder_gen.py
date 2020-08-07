@@ -225,7 +225,8 @@ class AppGenerator:
                                     dot.edge(src, dst)
 
 
-        dot.render('test-output/round-table.gv', view=True)
+        dot.render(dotFile, view=True)
+        # dot.render('test-output/round-table.gv', view=True)
         print(dot.source)
 
         # g = Digraph('G', filename='cluster.gv')

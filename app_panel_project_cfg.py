@@ -3,14 +3,15 @@ import wx
 
 class ProjectConfigPanel(wx.Panel):
     """Main config window Component Panel."""
+
     def __init__(self, parent,curPrj, panel_color):
         """Init Main config window Component Panel."""
         wx.Panel.__init__(self, parent)
+        self.SetBackgroundColour(panel_color)
 
         self.parent = parent
         self.curPrj = curPrj
 
-        self.SetBackgroundColour(panel_color)
 
         # All component elements
         #build general configuration Sizer: Name, Git, Path, Group
@@ -132,7 +133,7 @@ class ProjectConfigPanel(wx.Panel):
         # Update Path
         comp_path = self.curPrj.GetPrjCompPath(comp)
         self.comp_path_txt.SetValue(comp_path)
-        self.main_window.build_panel.UpdateGroupTreeList(comp, self.cnl_tree_src)
+        self.main_window.build_panel.UpdateGroupSrcTreeList(comp, self.cnl_tree_src)
 
     def showGroupConfig(self, comp, grp):
         """Show component Channels on Panel."""

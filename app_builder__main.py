@@ -42,9 +42,10 @@ app_panel_color = "light gray"
 
 class MainWindow(wx.Frame):
     """Main Window Frame."""
+
     def __init__(self, parent, title):
         """Init Main Window."""
-        super(MainWindow, self).__init__(parent, title=title, size=(800, 700))
+        super(MainWindow, self).__init__(parent, title=title, size=(900, 700))
         curPrj.cbChangedParent = self
         self.Centre()
         self.parent = parent
@@ -59,7 +60,6 @@ class MainWindow(wx.Frame):
         self.comp_panel = plf_panel.PlatformPanel(nb, curPrj, app_panel_color)
         self.prj_panel.main_window = self
 
-
         self.build_panel = bld_panel.ProjectBuilderPanel(nb, curPrj, app_panel_color)
         self.prj_panel.main_window = self
 
@@ -69,7 +69,7 @@ class MainWindow(wx.Frame):
         nb.AddPage(self.comp_panel, "ES Platform ")
         # nb.AddPage(self.grp_panel, "ADD group to the channel")
         nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChange)
-        # Set noteboook in a sizer to create the layout
+        # Set notebook in a sizer to create the layout
         sizer = wx.BoxSizer()
         sizer.Add(nb, 1, wx.EXPAND)
         main_panel.SetSizer(sizer)
@@ -78,6 +78,7 @@ class MainWindow(wx.Frame):
 
 
     def OnTabChange(self, event):
+        """Handle changing Tab event."""
         # self.grp_panel.OnEnterWindow(event)
         self.build_panel.OnEnterWindow(event)
 
@@ -154,6 +155,7 @@ class MainWindow(wx.Frame):
         """Open Platform Component List."""
         print("Item OnPlatformLoad selected")
         curPrj.LoadPlatformFile()
+        curPrj.LoadCompDefinitions()
         self.comp_panel.UpdatePlatformComptList()
 
     def OnPlatformUpdate(self, event):
@@ -190,19 +192,19 @@ class MainWindow(wx.Frame):
 
 
     def OnReload(self, event):
+        """Handle Reload menu Item."""
         # Proceed loading the file chosen by the user
         pathname = curPrj.GetProjectFilePath()
         self.OpenProjectFile(pathname)
 
     def OnOpenLast(self, event):
+        """Handle Open Last project  menu Item."""
         # Proceed loading the file chosen by the user
-        fileNum = 1 #- wx.ID_FILE1
+        fileNum = 0 #- wx.ID_FILE1
         print(fileNum)
         pathname = self.filehistory.GetHistoryFile(fileNum)
         # Proceed loading the file chosen by the user
         self.OpenProjectFile(pathname)
-
-        return
 
     def OnOpen(self, event):
         """Process Open a project file event."""
@@ -258,7 +260,7 @@ class MainWindow(wx.Frame):
         self.OpenProjectFile(pathname)
 
     def OpenProjectFile(self, pathname):
-        """Open a project File"""
+        """Open a project File."""
         # Open Project File
         try:
             curPrj.LoadProjectFile(pathname)
@@ -278,7 +280,10 @@ class MainWindow(wx.Frame):
         try:
             platformFilePath = curPrj.GetProjectHomeDir(
             ) + "/" + curPrj.platformDir + "/" + curPrj.platformFileName
+
             curPrj.LoadPlatformFile()
+            curPrj.LoadCompDefinitions()
+
         except IOError:
             wx.LogError("Cannot open Platform File file '%s'." %
                         platformFilePath)
@@ -303,7 +308,7 @@ class MainWindow(wx.Frame):
             self.doSaveData(pathname)
 
     def OnSave(self, event):
-        """Process Save project menu event"""
+        """Process Save project menu event."""
         pathname = curPrj.GetProjectFilePath()
         print("here")
         print(pathname)
@@ -359,6 +364,7 @@ class MainWindow(wx.Frame):
         curPrj.GenProjectTree()
 
     def OnProjectChanged(self):
+        """Set changed status on status bar."""
         print("project change detected")
         self.statusbar.SetStatusText("* Changed",1)
 
