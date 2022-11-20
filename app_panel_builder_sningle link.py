@@ -973,15 +973,9 @@ class ProjectBuilderPanel(wx.Panel):
             cnl_list = self.curPrj.GetPrjCompGrpCnlList(comp, grp)
             for cnl in cnl_list:
                 cnl_item = item_tree_list.AppendItem(child, cnl)
-                lnk_list = self.curPrj.GetPrjGrpCnlLink(comp, grp, cnl)
-                
                 # Show Link
-                # cnl_link = self.curPrj.GetPrjGrpCnlLink(comp, grp, cnl)
-                # item_tree_list.SetItemText(cnl_item, 1, cnl_link)                
-                for cnl_link in lnk_list:
-                    lnk_item = item_tree_list.AppendItem(child, cnl)
-                    item_tree_list.SetItemText(lnk_item, 1, cnl_link)
-
+                cnl_link = self.curPrj.GetPrjGrpCnlLink(comp, grp, cnl)
+                item_tree_list.SetItemText(cnl_item, 1, cnl_link)
                 # Show Dependency
                 res = self.curPrj.GetPrjCompGrpDep(comp, grp)
                 item_tree_list.SetItemText(cnl_item, 2, res)

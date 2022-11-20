@@ -1,4 +1,4 @@
-
+import wx
 
 class CompEditPanel(wx.Panel):
     """Panel for component list and the references in the project and git."""

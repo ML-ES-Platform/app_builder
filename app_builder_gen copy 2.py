@@ -217,32 +217,7 @@ class AppGenerator:
                             if cnl_str.endswith(', '):
                                 cnl_str = cnl_str[:-2]                                
                             f_src.write(cnl_str)
-                            f_src.write("};\n")
-
-                            for cnl in linkChannels:
-
-                                # no generation if no channels in group identified
-                                if len(linkChannels[cnl]) == 0:
-                                    continue
-                                
-                                cnlName = str(cnl)
-                                lnkList = linkChannels[cnl]
-                                f_src.write("Std_ChannelIdType " + groupName.upper() +
-                                "_" + cnlName.upper() +"_Cnl["+ str(len(lnkList)) + "] = {")
-
-                                lnk_str = ""
-                                for lnk in lnkList:
-                                    lnk_str = lnk_str + str(lnk) + ', '
-                                if lnk_str.endswith(', '):
-                                    lnk_str = lnk_str[:-2]
-
-                                f_src.write(lnk_str)
-                                f_src.write("};\n")
-                            f_src.write("\n")
-
-
-
-
+                            f_src.write("};\n\n")
 
 
 
@@ -316,29 +291,13 @@ Std_ReturnType " + applicationName + "_config(void)\n\
                             f_src.write("\n")
                             linkChannels = linkGroup[grp]["Channels"]
 
-                            # go through Cannels
                             for cnl in linkChannels:
-
-                                # no generation if no links in channel identified
-                                if len(linkChannels[cnl]) == 0:
-                                    continue
-
-                                lnkList = linkChannels[cnl]
-
-                                # go through links
-                                for lnk in lnkList:
-
-
-
-                                    if (lnk != "null"):
-                                        f_src.write("\
+                                if (linkChannels[cnl] != "null"):
+                                    f_src.write("\
     error += " + componentName.upper() + "_ChannelSetup(" +
-                                        parentChannelStr + cnl +
-                                        ", " + lnk +
-                                        ");\n")
-
-
-
+                                                parentChannelStr + cnl +
+                                                ", " + linkChannels[cnl] +
+                                                ");\n")
                             # Pull
                             if "Pull" in linkGroup[grp]:
 

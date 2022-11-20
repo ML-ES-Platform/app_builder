@@ -1,6 +1,6 @@
 {
-    "Description": "Application Demo for 3-DOF Robotic arm  control",
-    "Type": "Components",
+    "Description": "Embedded System Platform manifest",
+    "Type": "Manifest",
     "git": "https://github.com/ML-ES-Platform/app_builder",
     "Path": "TOOLS/app_builder/",
     "Components": {
@@ -22,9 +22,6 @@
             "git": "https://github.com/ML-ES-Platform/vd_angle_sens.git",
             "Path": "ESW/vd_angle_sens/"
         },
-        "pca9685": {
-            "TypeName": "pca9685"
-        },
         "dd_pca9685": {
             "TypeName": "dd_pca9685",
             "git": "https://github.com/ML-ES-Platform/dd_pca9685.git",
@@ -45,10 +42,32 @@
             "git": "https://github.com/ML-ES-Platform/os_time_trig.git",
             "Path": "BSW/os_time_trig/"
         },
-        "arm_6dof": {
-            "TypeName": "arm_6dof",
-            "git": "https://github.com/ML-ES-Platform/arm_6dof.git",
-            "Path": "ASW/arm_6dof/"
+        "head_2dof": {
+            "TypeName": "head_2dof",
+            "git": "https://github.com/ML-ES-Platform/head_2dof.git",
+            "Path": "ASW/head_2dof/"
+        },
+        "body_3dof": {
+            "TypeName": "body_3dof",
+            "git": "https://github.com/ML-ES-Platform/body_3dof.git",
+            "Path": "ASW/body_3dof/"
+        },
+        "leg_4dof": {
+            "TypeName": "leg_4dof",
+            "git": "https://github.com/ML-ES-Platform/leg_4dof.git",
+            "Path": "ASW/leg_4dof/"
+        },
+
+        "arm_3dof": {
+            "TypeName": "arm_3dof",
+            "git": "https://github.com/ML-ES-Platform/arm_3dof.git",
+            "Path": "ASW/arm_3dof/"
+        },
+        "hum_25dof": {
+            "TypeName": "hum_25dof",
+            "git": "https://github.com/ML-ES-Platform/hum_25dof.git",
+            "Path": "ASW/hum_25dof/"
         }
+        
     }
 }

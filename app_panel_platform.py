@@ -1,6 +1,7 @@
 
 """GUI - Platform Management Panel."""
 import wx
+from wx import *
 
 
 class PlatformPanel(wx.Panel):
@@ -38,7 +39,7 @@ class PlatformPanel(wx.Panel):
         topSizer.Add(self.comp_list, 0, wx.ALL | wx.EXPAND, 3)
         comp_main_cfg_sizer = wx.BoxSizer(wx.VERTICAL)
         comp_name_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.comp_name_lbl = wx.StaticText(self, wx.ID_ANY, u"Component Name",
+        self.comp_name_lbl = wx.StaticText(self, wx.ID_ANY, "Component Name",
                                            wx.DefaultPosition,
                                            wx.Size(100, -1), wx.ALIGN_RIGHT)
         self.comp_name_lbl.Wrap(-1)
@@ -49,7 +50,7 @@ class PlatformPanel(wx.Panel):
         comp_main_cfg_sizer.Add(comp_name_sizer, 0, wx.ALL | wx.EXPAND, 3)
         comp_git_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.comp_git_lbl = wx.StaticText(self, wx.ID_ANY,
-                                          u"Component Git", wx.DefaultPosition,
+                                          "Component Git", wx.DefaultPosition,
                                           wx.Size(100, -1), wx.ALIGN_RIGHT)
         self.comp_git_lbl.Wrap(-1)
         comp_git_sizer.Add(self.comp_git_lbl, 0, wx.ALL, 3)
@@ -59,7 +60,7 @@ class PlatformPanel(wx.Panel):
 
         comp_main_cfg_sizer.Add(comp_git_sizer, 0, wx.ALL | wx.EXPAND, 3)
         comp_path_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.comp_path_lbl = wx.StaticText(self, wx.ID_ANY, u"Component Path",
+        self.comp_path_lbl = wx.StaticText(self, wx.ID_ANY, "Component Path",
                                            wx.DefaultPosition,
                                            wx.Size(100, -1), wx.ALIGN_RIGHT)
         self.comp_path_lbl.Wrap(-1)
@@ -80,7 +81,7 @@ class PlatformPanel(wx.Panel):
         grp_cfg_sizer = wx.BoxSizer(wx.VERTICAL)
         grp_name_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.grp_name_lbl = wx.StaticText(self, wx.ID_ANY,
-                                          u"Group Name", wx.DefaultPosition,
+                                          "Group Name", wx.DefaultPosition,
                                           wx.Size(150, -1), wx.ALIGN_RIGHT)
         self.grp_name_lbl.Wrap(-1)
         grp_name_sizer.Add(self.grp_name_lbl, 0, wx.ALL, 3)
@@ -90,7 +91,7 @@ class PlatformPanel(wx.Panel):
         grp_cfg_sizer.Add(grp_name_sizer, 0, wx.EXPAND, 3)
         grp_mult_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.grp_mult_lbl = wx.StaticText(self, wx.ID_ANY,
-                                          u"Group Multiplicity",
+                                          "Group Multiplicity",
                                           wx.DefaultPosition, wx.Size(150, -1),
                                           wx.ALIGN_RIGHT)
         self.grp_mult_lbl.Wrap(-1)
@@ -103,7 +104,7 @@ class PlatformPanel(wx.Panel):
         grp_cfg_sizer.Add(grp_lists_cfg_sizer, 0, wx.EXPAND, 3)
         grp_name_space_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.grp_name_space_lbl = wx.StaticText(self, wx.ID_ANY,
-                                                u"Group Namespace",
+                                                "Group Namespace",
                                                 wx.DefaultPosition,
                                                 wx.Size(150,
                                                         -1), wx.ALIGN_RIGHT)
@@ -127,7 +128,7 @@ class PlatformPanel(wx.Panel):
         grp_cfg_sizer.Add(grp_lists_cfg_sizer, 0, wx.EXPAND, 3)
         cnl_name_space_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.cnl_name_space_lbl = wx.StaticText(self, wx.ID_ANY,
-                                                u"Channel Namespace",
+                                                "Channel Namespace",
                                                 wx.DefaultPosition,
                                                 wx.Size(150,
                                                         -1), wx.ALIGN_RIGHT)
@@ -140,7 +141,7 @@ class PlatformPanel(wx.Panel):
         grp_cfg_sizer.Add(cnl_name_space_sizer, 0, wx.EXPAND, 3)
         cnl_mult_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.cnl_mult_lbl = wx.StaticText(self, wx.ID_ANY,
-                                          u"Channel Multiplicity",
+                                          "Channel Multiplicity",
                                           wx.DefaultPosition, wx.Size(150, -1),
                                           wx.ALIGN_RIGHT)
         self.cnl_mult_lbl.Wrap(-1)

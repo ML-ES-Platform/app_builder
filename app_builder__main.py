@@ -1,11 +1,13 @@
 """GUI For Application Builder."""
-
 import wx
+from wx import *
 import wx.dataview
 
 import app_panel_project_cfg as cfg_panel
 import app_panel_platform as plf_panel
+import app_panel_platform_def as plf_def_panel
 import app_panel_builder as bld_panel
+import app_builder_utils as utils
 import app_popup_menu as popup_menu
 import app_builder_prj
 import app_builder_gen
@@ -26,8 +28,8 @@ import os
 curPrj = app_builder_prj.AppBuilderProject("")
 
 curPrj.compsUrl = "https://raw.githubusercontent.com/ML-ES-Platform/app_builder/master/components.json"
-curPrj.platformDir = "TOOLS"
-curPrj.platformFileName = "components.json"
+curPrj.platformDir = ""
+curPrj.platformFileName = "platform.json"
 curPrj.prjDir = ""
 curPrj.prjFileName = ""
 curPrj.compDefaultPath = "COMPS"
@@ -50,6 +52,7 @@ class MainWindow(wx.Frame):
         self.Centre()
         self.parent = parent
         self.createMenu()
+        utils.curPrj = curPrj
         # Create a panel and notebook (tabs holder)
         main_panel = wx.Panel(self)
         nb = wx.Notebook(main_panel, wx.NB_MULTILINE)
@@ -57,16 +60,20 @@ class MainWindow(wx.Frame):
         self.prj_panel = cfg_panel.ProjectConfigPanel(nb, curPrj, app_panel_color)
         self.prj_panel.main_window = self
 
-        self.comp_panel = plf_panel.PlatformPanel(nb, curPrj, app_panel_color)
-        self.prj_panel.main_window = self
+        # self.comp_panel = plf_panel.PlatformPanel(nb, curPrj, app_panel_color)
+        # self.prj_panel.main_window = self
+
+        self.plf_def_panel = plf_def_panel.PlatformDefPanel(nb, curPrj, app_panel_color)
+        self.plf_def_panel.main_window = self
 
         self.build_panel = bld_panel.ProjectBuilderPanel(nb, curPrj, app_panel_color)
         self.prj_panel.main_window = self
 
         # Add the windows to tabs and name them.
-        nb.AddPage(self.build_panel, "App Builder")
+        nb.AddPage(self.plf_def_panel, "ES Platform Definition")
         nb.AddPage(self.prj_panel, "Project Configuration")
-        nb.AddPage(self.comp_panel, "ES Platform ")
+        nb.AddPage(self.build_panel, "Application Builder")
+        # nb.AddPage(self.comp_panel, "ES Platform")
         # nb.AddPage(self.grp_panel, "ADD group to the channel")
         nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChange)
         # Set notebook in a sizer to create the layout
@@ -156,7 +163,8 @@ class MainWindow(wx.Frame):
         print("Item OnPlatformLoad selected")
         curPrj.LoadPlatformFile()
         curPrj.LoadCompDefinitions()
-        self.comp_panel.UpdatePlatformComptList()
+        # self.comp_panel.UpdatePlatformComptList()
+        self.plf_def_panel.UpdatePlatformComptList()
 
     def OnPlatformUpdate(self, event):
         """Update Platform Component List."""
@@ -289,7 +297,8 @@ class MainWindow(wx.Frame):
                         platformFilePath)
         #update Application windows
         self.prj_panel.UpdateProjectComptList()
-        self.comp_panel.UpdatePlatformComptList()
+        # self.comp_panel.UpdatePlatformComptList()
+        self.plf_def_panel.UpdatePlatformComptList()
         self.build_panel.UpdatePanel()
 
 

@@ -1,11 +1,11 @@
 """GUI - Project configuration Panel."""
 import wx
+from wx import *
 import app_builder_prj as app_prj
 import app_builder_utils as utils
 
 
-
-class ProjectConfigPanel(wx.Panel):
+class PlatformDefPanel(wx.Panel):
     """Main config window Component Panel."""
     def __init__(self, parent, curPrj, panel_color):
         """Init Main config window Component Panel."""
@@ -48,12 +48,12 @@ class ProjectConfigPanel(wx.Panel):
         comp_main_cfg_sizer.Add(comp_name_sizer, 0, wx.ALL | wx.EXPAND, 3)
 
         # build comp Name Sizer ==================================
-        # Configuration Tree List
+        # Definition Tree List
         self.panel_item_tree = wx.dataview.TreeListCtrl(self,
                                                  size=(-1, -1),
                                                  style=wx.LC_REPORT)
         comp_main_cfg_sizer.Add(self.panel_item_tree, 1, wx.ALL | wx.EXPAND, 3)
-        self.panel_item_tree.AppendColumn('Configuration Name', width=200)
+        self.panel_item_tree.AppendColumn('Definition Name', width=200)
         self.panel_item_tree.AppendColumn('Value')
 
         self.panel_item_tree.Bind(wx.dataview.EVT_TREELIST_SELECTION_CHANGED,
@@ -61,7 +61,7 @@ class ProjectConfigPanel(wx.Panel):
         # Comp Git line ====================================================
         tree_path_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.tree_path_lbl = wx.StaticText(self, wx.ID_ANY,
-                                           'Configuration Path : ',
+                                           'Definition Path : ',
                                            wx.DefaultPosition,
                                            wx.Size(120, -1), wx.ALIGN_RIGHT)
         tree_path_sizer.Add(self.tree_path_lbl, 0, wx.ALL | wx.EXPAND, 3)
@@ -70,8 +70,7 @@ class ProjectConfigPanel(wx.Panel):
         comp_main_cfg_sizer.Add(tree_path_sizer, 0, wx.ALL | wx.EXPAND, 3)
         # Comp Path line ====================================================
         tree_value_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.path_lbl = wx.StaticText(self, wx.ID_ANY,
-                                      'Configuration Value : ',
+        self.path_lbl = wx.StaticText(self, wx.ID_ANY, 'Definition Value : ',
                                       wx.DefaultPosition, wx.Size(120, -1),
                                       wx.ALIGN_RIGHT)
         tree_value_sizer.Add(self.path_lbl, 0, wx.ALL | wx.EXPAND, 3)
@@ -140,7 +139,7 @@ class ProjectConfigPanel(wx.Panel):
         comp_path = self.curPrj.GetPrjCompPath(comp)
         self.tree_value_txt.SetValue(comp_path)
 
-        utils.ShowCompDef(self.curPrj.JSON_project, self.panel_item_tree, comp)
+        utils.ShowCompDef(self.curPrj.JSON_comp_config, self.panel_item_tree, comp)
 
         # Update Tree Path
         tree_path = utils.GetSelectedTreePath(self.panel_item_tree)
@@ -157,26 +156,41 @@ class ProjectConfigPanel(wx.Panel):
         self.tree_path_txt.SetValue(
             str(tree_path)[2:-2].replace("', '", " / "))
 
-        item_val = self.curPrj.GetValueByKeyList(self.curPrj.JSON_project,
+        item_val = self.curPrj.GetValueByKeyList(self.curPrj.JSON_comp_config,
                                                     ["Components"] + tree_path)
         self.tree_value_txt.SetValue(str(item_val))
 
         print(item_name)
         print(str(tree_path))
 
-        def showGroupConfig(self, comp, grp):
-            """Show component Channels on Panel."""
-            self.cnl_list.DeleteAllItems()
-            # Channels Iterate
-            cnl_list = self.curPrj.GetPrjCompGrpCnlList(comp, grp)
-            for cnl in cnl_list:
-                index = 0
-                self.cnl_list.InsertItem(index, cnl)
-                lnk = self.curPrj.GetPrjGrpCnlLink(comp, grp, cnl)
-                self.cnl_list.SetItem(index, 1, lnk)
-            return
+    def showGroupConfig(self, comp, grp):
+        """Show component Channels on Panel."""
+        self.cnl_list.DeleteAllItems()
+        # Channels Iterate
+        cnl_list = self.curPrj.GetPrjCompGrpCnlList(comp, grp)
+        for cnl in cnl_list:
+            index = 0
+            self.cnl_list.InsertItem(index, cnl)
+            lnk = self.curPrj.GetPrjGrpCnlLink(comp, grp, cnl)
+            self.cnl_list.SetItem(index, 1, lnk)
+        return
 
     def UpdateProjectComptList(self):
         """Show component on Panel."""
         sel_comp = self.main_window.build_panel.UpdateProjectCompList(
             self.comp_list)
+
+    def UpdatePlatformComptList(self):
+        """Extract component list and the references in a panel."""
+        self.comp_list.DeleteAllItems()
+        comp_list = self.curPrj.GetAllCompList()
+        index = 0
+        for comp in comp_list:
+            # Insert item in the list
+            self.comp_list.InsertItem(index, comp)
+            # Color Mark component in the project
+            color = self.curPrj.GetCompStatusColor(comp)
+            self.comp_list.SetItemTextColour(index, color)
+            index += 1
+
+        return

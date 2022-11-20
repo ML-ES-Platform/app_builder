@@ -3,6 +3,7 @@ import json
 import os
 import git
 import app_builder_gen as gen
+import requests
 
 
 class AppBuilderProject(gen.AppGenerator):
@@ -11,7 +12,7 @@ class AppBuilderProject(gen.AppGenerator):
     def __init__(self, x):
         """Init the manager instance."""
         self.prjContentChanged = False
-        self.cbChangedParent = "null"
+        self.bChangedParent = "null"
 
         self.platformUrl = "none"
         self.platformDir = "none"
@@ -43,7 +44,7 @@ class AppBuilderProject(gen.AppGenerator):
             self.JSON_project = json.load(file)
             self.SetProjectFilePath(pathname)
             file.close()
-        filePath = self.GetProjectFilePath()
+        # filePath = self.GetProjectFilePath()
         self.prjContentChanged = False
 
     def SaveProjectFile(self):
@@ -59,7 +60,7 @@ class AppBuilderProject(gen.AppGenerator):
         prjDir = self.GetProjectHomeDir()
         compDir = self.GetPlatformCompPath(comp)
         configFileName = (prjDir + "/" + compDir + "/" +
-                          "config.json").replace("//", "/")
+                          "definition.json").replace("//", "/")
         try:
             with open(configFileName, 'r') as file:
                 self.JSON_config = json.load(file)
@@ -142,6 +143,9 @@ class AppBuilderProject(gen.AppGenerator):
         resultRef = JSON_object
         for key in key_list:
             if key in resultRef:
+                if type(resultRef)==list:
+                    resultRef = "null"
+                    break
                 resultRef = resultRef[key]
             else:
                 resultRef = "null"
@@ -174,16 +178,16 @@ class AppBuilderProject(gen.AppGenerator):
 
     def GetDefCompName(self, comp):
         """Test the component Name exists in definitions."""
-        if comp not in JSON_comp_config["Components"]:
+        if comp not in self.JSON_comp_config["Components"]:
             comp = "null"
         
         return comp
 
     def GetDefCompGit(self, comp):
-        return GetDefCompByKey(self, comp, "git")
+        return self.GetDefCompByKey( comp, "git")
 
     def GetDefCompPath(self, comp):
-        return GetDefCompByKey(self, comp, "Path")
+        return self.GetDefCompByKey( comp, "Path")
 
     def GetDefCompGrpList(self, comp):
         key_list = ["Components", comp, "Groups"]

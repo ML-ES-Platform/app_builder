@@ -18,7 +18,7 @@ class CompListPopupMenu(wx.Menu):
         """On Item One selected."""
         curPrj.AddProjectCompFromPlatform(self.comp)
         window.prj_panel.UpdateProjectComptList()
-        window.comp_panel.UpdatePlatformComptList()
+        # window.comp_panel.UpdatePlatformComptList()
 
 
 class CompPopupMenu(wx.Menu):
